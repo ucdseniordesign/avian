@@ -126,6 +126,20 @@ public class Vector<T> extends AbstractList<T> implements java.io.Serializable, 
   public Enumeration<T> elements() {
     return new Collections.IteratorEnumeration(iterator());
   }
+  
+  @Override
+  public boolean retainAll(Collection<?> c) {
+    boolean changed = false;
+    Iterator<T> iter = this.iterator();
+    while(iter.hasNext()) {
+      T item = iter.next();
+      if(!c.contains(item)) {
+        changed = true;
+        iter.remove();
+      }
+    }
+    return changed;
+  }
 
   public synchronized Object clone() {
     Vector copy = new Vector(size());

@@ -10,15 +10,16 @@
 
 package java.lang;
 
-import java.io.PrintStream;
-import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileDescriptor;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.OverrideablePrintStream;
+import java.io.PrintStream;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
 
 public abstract class System {
@@ -36,16 +37,35 @@ public abstract class System {
   //   static {
   //     loadLibrary("natives");
   //   }
+  private static final OverrideablePrintStream _out = new OverrideablePrintStream
+  (new BufferedOutputStream(new FileOutputStream(FileDescriptor.out)), true);
+  
+  public static final PrintStream out = _out;
 
-  public static final PrintStream out = new PrintStream
-    (new BufferedOutputStream(new FileOutputStream(FileDescriptor.out)), true);
+  private static final OverrideablePrintStream  _err = new OverrideablePrintStream 
+      (new BufferedOutputStream(new FileOutputStream(FileDescriptor.err)), true);
 
-  public static final PrintStream err = new PrintStream
-    (new BufferedOutputStream(new FileOutputStream(FileDescriptor.err)), true);
+  public static final PrintStream err = _err;
 
   public static final InputStream in
     = new BufferedInputStream(new FileInputStream(FileDescriptor.in));
-
+  
+  public static void setErr(PrintStream err) {
+    SecurityManager sm = getSecurityManager();
+    if(sm != null) {
+      getSecurityManager().checkPermission(new RuntimePermission("setIO"));
+    }
+    _err.overrideStream(err);
+  }
+  
+  public static void setOut(PrintStream out) {
+    SecurityManager sm = getSecurityManager();
+    if(sm != null) {
+      getSecurityManager().checkPermission(new RuntimePermission("setIO"));
+    }
+    _err.overrideStream(out);
+  }
+  
   public static native void arraycopy(Object src, int srcOffset, Object dst,
                                       int dstOffset, int length);
 

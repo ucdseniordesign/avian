@@ -415,6 +415,20 @@ public class Collections {
       // as described in the javadocs, user should be synchronized on list before calling
       return list.listIterator();
     }
+    
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      boolean changed = false;
+      Iterator<T> iter = this.iterator();
+      while(iter.hasNext()) {
+        T item = iter.next();
+        if(!c.contains(item)) {
+          changed = true;
+          iter.remove();
+        }
+      }
+      return changed;
+    }
   }
   
   static class RandomAccessSynchronizedList<T>
@@ -461,7 +475,7 @@ public class Collections {
 
   static class ArrayListIterator<T> implements ListIterator<T> {
     private final List<T> list;
-    private int toRemove = -1;
+    private int prevIndex = -1;
     private int index;
 
     public ArrayListIterator(List<T> list) {
@@ -479,7 +493,7 @@ public class Collections {
 
     public T previous() {
       if (hasPrevious()) {
-        toRemove = index;
+        prevIndex = index;
         return list.get(index--);
       } else {
         throw new NoSuchElementException();
@@ -488,7 +502,7 @@ public class Collections {
 
     public T next() {
       if (hasNext()) {
-        toRemove = ++index;
+        prevIndex = ++index;
         return list.get(index);
       } else {
         throw new NoSuchElementException();
@@ -500,10 +514,41 @@ public class Collections {
     }
 
     public void remove() {
-      if (toRemove != -1) {
-        list.remove(toRemove);
-        index = toRemove - 1;
-        toRemove = -1;
+      if (prevIndex != -1) {
+        list.remove(prevIndex);
+        index = prevIndex - 1;
+        prevIndex = -1;
+      } else {
+        throw new IllegalStateException();
+      }
+    }
+
+    @Override
+    public int nextIndex() {
+      if(hasNext()) {
+        return index+1;
+      }
+      return index;
+    }
+
+    @Override
+    public void add(T e) {
+      list.add(index, e);
+    }
+
+    @Override
+    public int previousIndex() {
+      if(hasPrevious()) {
+        
+      }
+      return -1;
+    }
+
+    @Override
+    public void set(T e) {
+      if(prevIndex >= 0) {
+        list.add(prevIndex, e);
+        list.remove(prevIndex+1);
       } else {
         throw new IllegalStateException();
       }
@@ -604,6 +649,20 @@ public class Collections {
 
     public boolean containsAll(Collection<?> c) {
       return inner.containsAll(c);
+    }
+    
+    @Override
+    public boolean retainAll(Collection<?> c) {
+      boolean changed = false;
+      Iterator<T> iter = this.iterator();
+      while(iter.hasNext()) {
+        T item = iter.next();
+        if(!c.contains(item)) {
+          changed = true;
+          iter.remove();
+        }
+      }
+      return changed;
     }
   }
 
@@ -709,6 +768,26 @@ public class Collections {
     @Override
     public T previous() {
       return innerListIterator.previous();
+    }
+
+    @Override
+    public void add(T e) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int nextIndex() {
+      return innerListIterator.nextIndex();
+    }
+
+    @Override
+    public int previousIndex() {
+      return innerListIterator.previousIndex();
+    }
+
+    @Override
+    public void set(T e) {
+      throw new UnsupportedOperationException();
     }
   }
   

@@ -482,6 +482,20 @@ public class Arrays {
       public ListIterator<T> listIterator(int index) {
         return new Collections.ArrayListIterator(this, index);
       }
+      
+      @Override
+      public boolean retainAll(Collection<?> c) {
+        boolean changed = false;
+        Iterator<T> iter = this.iterator();
+        while(iter.hasNext()) {
+          T item = iter.next();
+          if(!c.contains(item)) {
+            changed = true;
+            iter.remove();
+          }
+        }
+        return changed;
+      }
     };
   }
 
