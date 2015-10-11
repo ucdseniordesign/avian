@@ -31,6 +31,33 @@ public class OverrideablePrintStream extends PrintStream {
   public void overrideStream(PrintStream ps){
     override = ps;
   }
+  
+  @Override
+  public void setError() {
+    if(override == null) {
+      super.setError();
+    } else {
+      override.setError();
+    }
+  }
+  
+  @Override
+  public boolean checkError() {
+    if(override == null) {
+      return super.checkError();
+    } else {
+      return override.checkError();
+    }
+  }
+  
+  @Override
+  public void clearError() {
+    if(override == null) {
+      super.clearError();
+    } else {
+      override.clearError();
+    }
+  }
 
   @Override
   public void print(String s) {
@@ -67,7 +94,7 @@ public class OverrideablePrintStream extends PrintStream {
     }
   }
 
-  public void write(byte[] buffer, int offset, int length) throws IOException {
+  public void write(byte[] buffer, int offset, int length) {
     if(override == null) {
       super.write(buffer, offset, length);
     } else {

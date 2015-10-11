@@ -431,11 +431,11 @@ public class Arrays {
     return true;
   }
 
-  public static <T> List<T> asList(final T ... array) {
+  public static <T> List<T> asList(final T[] localArray) {
     return new AbstractList<T>() {
       @Override
       public int size() {
-        return array.length;
+        return localArray.length;
       }
 
       @Override
@@ -445,8 +445,8 @@ public class Arrays {
 
       @Override
       public int indexOf(Object element) {
-        for (int i = 0; i < array.length; ++i) {
-          if (equal(element, array[i])) {
+        for (int i = 0; i < localArray.length; ++i) {
+          if (equal(element, localArray[i])) {
             return i;
           }
         }
@@ -455,8 +455,8 @@ public class Arrays {
 
       @Override
       public int lastIndexOf(Object element) {
-        for (int i = array.length - 1; i >= 0; --i) {
-          if (equal(element, array[i])) {
+        for (int i = localArray.length - 1; i >= 0; --i) {
+          if (equal(element, localArray[i])) {
             return i;
           }
         }
@@ -465,7 +465,7 @@ public class Arrays {
 
       @Override
       public T get(int index) {
-        return array[index];
+        return localArray[index];
       }
 
       @Override
@@ -480,21 +480,7 @@ public class Arrays {
 
       @Override
       public ListIterator<T> listIterator(int index) {
-        return new Collections.ArrayListIterator(this, index);
-      }
-      
-      @Override
-      public boolean retainAll(Collection<?> c) {
-        boolean changed = false;
-        Iterator<T> iter = this.iterator();
-        while(iter.hasNext()) {
-          T item = iter.next();
-          if(!c.contains(item)) {
-            changed = true;
-            iter.remove();
-          }
-        }
-        return changed;
+        return new Collections.ArrayListIterator<T>(this, index);
       }
     };
   }

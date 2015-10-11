@@ -183,20 +183,6 @@ public class ArrayList<T> extends AbstractList<T> implements java.io.Serializabl
   public ListIterator<T> listIterator() {
     return listIterator(0);
   }
-  
-  @Override
-  public boolean retainAll(Collection<?> c) {
-    boolean changed = false;
-    Iterator<T> iter = this.iterator();
-    while(iter.hasNext()) {
-      T item = iter.next();
-      if(!c.contains(item)) {
-        changed = true;
-        iter.remove();
-      }
-    }
-    return changed;
-  }
 
   public String toString() {
     return avian.Data.toString(this);
