@@ -10,14 +10,15 @@ public class HandshakeCompletedEvent extends EventObject {
 	private final SSLSession s;
 
 	public 	HandshakeCompletedEvent(SSLSocket sock, SSLSession s){
+		super(sock);
 		this.sock = sock;
 		this.s = s;
 	}
 	public SSLSession getSession(){
-		return SSLsession;
+		return s;
 	}
 	public String getCipherSuite(){
-		return CipherSuite;
+		return null;
 	}
 
 	public Certificate[] getLocalCertificates(){
