@@ -1,12 +1,7 @@
 import java.text.MessageFormat;
+import static avian.testing.Asserts.*;
 
 public class MessageFormatTest {
-
-  private static void assertEquals(Object a, Object b) {
-    if(!a.equals(b)) {
-      throw new RuntimeException("[" + a + "] != [" + b + "]");
-    }
-  }
 
   public static void main(String[] args) {
     assertEquals("Hi there", MessageFormat.format("Hi there", "a"));

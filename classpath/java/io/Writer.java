@@ -33,16 +33,16 @@ public abstract class Writer implements Closeable, Flushable, Appendable {
   public abstract void write(char[] buffer, int offset, int length)
     throws IOException;
 
-  public Appendable append(final char c) throws IOException {
+  public Writer append(final char c) throws IOException {
     write((int)c);
     return this;
   }
 
-  public Appendable append(final CharSequence sequence) throws IOException {
+  public Writer append(final CharSequence sequence) throws IOException {
     return append(sequence, 0, sequence.length());
   }
 
-  public Appendable append(CharSequence sequence, int start, int end) 
+  public Writer append(CharSequence sequence, int start, int end) 
       throws IOException {
     final int length = end - start;
     if (sequence instanceof String) {
