@@ -12,19 +12,27 @@ package java.util;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.Reader;
 
 public class PropertyResourceBundle extends ResourceBundle {
-  private final Properties map = new Properties();
+  private final HashMap<String, Object> map;
 
   public PropertyResourceBundle(InputStream in) throws IOException {
-    map.load(in);
+    Properties properties = new Properties();
+    properties.load(in);
+    map = new HashMap(properties);
   }
+  public PropertyResourceBundle (Reader reader) throws IOException {
+      Properties properties = new Properties();
+      properties.load(reader);
+      map = new HashMap(properties);
+    }
 
   public Object handleGetObject(String key) {
     return map.get(key);
   }
 
   public Enumeration<String> getKeys() {
-    return map.keys();
+    return new Collections.IteratorEnumeration<String>(map.keySet().iterator());
   }
 }
