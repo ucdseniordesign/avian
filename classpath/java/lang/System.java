@@ -114,7 +114,7 @@ public abstract class System {
   private static native long getBaseNanoTime();
 
   public static long nanoTime() {
-    return getBaseNanoTime();// - BaseNanos;
+    return getBaseNanoTime();
   }
 
   public static String mapLibraryName(String name) {
