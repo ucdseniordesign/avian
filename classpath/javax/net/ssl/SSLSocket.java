@@ -1,7 +1,9 @@
 package javax.net.ssl;
 
 //import library for SSLSocket class.
-import java.net.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.net.InetAddress;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
