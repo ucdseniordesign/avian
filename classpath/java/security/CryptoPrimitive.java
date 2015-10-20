@@ -1,0 +1,14 @@
+package java.security;
+
+public enum CryptoPrimitive {
+   BLOCK_CIPHER,
+   KEY_AGREEMENT,
+   KEY_ENCAPSULATION,
+   KEY_WRAP,
+   MAC,
+   MESSAGE_DIGEST,
+   PUBLIC_KEY_ENCRYPTION,
+   SECURE_RANDOM,
+   SIGNATURE,
+   STREAM_CIPHER
+}
