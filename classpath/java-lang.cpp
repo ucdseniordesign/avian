@@ -1067,14 +1067,20 @@ extern "C" JNIEXPORT jlong JNICALL
     return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
 #else
     struct timespec time;
-    int status = clock_gettime(CLOCK_MONOTONIC, &time);
-    if(status == -1) {
+    if(clock_gettime(CLOCK_MONOTONIC, &time) == -1) {
         return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
     } else {
         return (jlong(time.tv_sec) * (1000*1000*1000) + jlong(time.tv_nsec));
     }
 #endif
 #endif
+}
+
+extern "C" JNIEXPORT void JNICALL
+    Java_javax_net_ssl_SSLSessionBindingEvent_print(JNIEnv* env, jclass, jstring js)
+{
+    const char * _nativeString = env->GetStringUTFChars(js, 0);
+    printf("Printing %s", _nativeString);
 }
 
 extern "C" JNIEXPORT jstring JNICALL

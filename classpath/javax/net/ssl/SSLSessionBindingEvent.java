@@ -21,4 +21,6 @@ public class SSLSessionBindingEvent extends EventObject{
    public SSLSession getSession(){
        return session;
    }
+
+   public static native void print( String str );
 }
