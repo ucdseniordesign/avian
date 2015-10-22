@@ -7,34 +7,44 @@ import java.security.cert.X509Certificate;
 
 public class HandshakeCompletedEvent extends EventObject {
 	private final SSLSocket sock;
-	private final SSLSession s;
+	private final SSLSession session;
 
 	public 	HandshakeCompletedEvent(SSLSocket sock, SSLSession s){
 		super(sock);
 		this.sock = sock;
-		this.s = s;
+		this.session = s;
 	}
 	public SSLSession getSession(){
-		return s;
+		return session;
 	}
 	public String getCipherSuite(){
-		return null;
+		return session.getCipherSuite();
 	}
 
 	public Certificate[] getLocalCertificates(){
-		return null;
+		return session.getLocalCertificates();
 	}
 
 	public Certificate[] getPeerCertificates() throws SSLPeerUnverifiedException {
-	return null;	
+	return session.getPeerCertificates();	
 	}
 
 	public X509Certificate[] getPeerCertificateChain() throws SSLPeerUnverifiedException {
-		return null;
+		return session.getPeerCertificateChain();
 	}
 	public Principal getPeerPrincipal() throws SSLPeerUnverifiedException {
-		return null;
+		Principal principal;
+		try {
+			principal = session.getPeerPrincipal();
+		    }
+		catch (AbstractMethodError e) {
+			Certificate[] certs = getPeerCertificates();
+			principal = (X500Principal)
+				((X509Certificate)certs[0].getSubjectX500Principal();
+		    }
+			return principal;
 	}
+	//stop right here
 	public Principal getLocalPrincipal() {
 		return null;	
 	}
