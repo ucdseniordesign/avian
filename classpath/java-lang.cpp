@@ -1071,8 +1071,7 @@ extern "C" JNIEXPORT jlong JNICALL
     if(status == -1) {
         return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
     } else {
-        jlong outtime = (jlong(time.tv_sec) * (1000*1000*1000) + jlong(time.tv_nsec));
-        return outtime;
+        return (jlong(time.tv_sec) * (1000*1000*1000) + jlong(time.tv_nsec));
     }
 #endif
 #endif
