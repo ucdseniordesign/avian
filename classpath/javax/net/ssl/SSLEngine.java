@@ -26,6 +26,9 @@ public abstract class SSLEngine extends Object {
         return wrap(new ByteBuffer [] {src}, 0, 1, dst);
     }
     public SSLEngineResult wrap(ByteBuffer[] srcs, ByteBuffer dst) throws SSLException {
+        if (srcs == null){
+            throw new IllegalArgumentException ("srcs == null");
+        }
         return wrap(srcs, 0, srcs.length, dst);
     }
     public abstract SSLEngineResult wrap(ByteBuffer[] srcs, int offset, int length, ByteBuffer dst) throws SSLException;
@@ -33,6 +36,9 @@ public abstract class SSLEngine extends Object {
         return unwrap(src, new ByteBuffer [] { dst }, 0, 1);
     }
     public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer[] dsts) throws SSLException {
+        if (dsts == null){
+            throw new IllegalArgumentException("dsts == null");
+        }
         return unwrap(src, dsts, 0, dsts.length);
     }
     public abstract SSLEngineResult unwrap(ByteBuffer src, ByteBuffer[] dsts, int offset, int length) throws SSLException;
