@@ -23,14 +23,10 @@ import java.util.Map;
 import java.util.Properties;
 
 public abstract class System {
-  private static class NanoTime {
-    public static final long BaseInMillis = currentTimeMillis();
-  }
   
   private static class Static {
     public static Properties properties = makeProperties();
   }
-
   private static Map<String, String> environment;
   
   private static SecurityManager securityManager;
@@ -114,9 +110,11 @@ public abstract class System {
   public static native long currentTimeMillis();
 
   public static native int identityHashCode(Object o);
+  
+  private static native long getBaseNanoTime();
 
   public static long nanoTime() {
-    return (currentTimeMillis() - NanoTime.BaseInMillis) * 1000000;
+    return getBaseNanoTime();
   }
 
   public static String mapLibraryName(String name) {
