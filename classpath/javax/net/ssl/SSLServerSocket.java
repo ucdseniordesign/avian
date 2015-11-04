@@ -1,8 +1,8 @@
 package javax.net.ssl;
 
-import java.io.*;
-import java.net.*;
-
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.InetAddress;
 public abstract class SSLServerSocket extends ServerSocket {
 	protected SSLServerSocket() throws IOException {
 		super();
