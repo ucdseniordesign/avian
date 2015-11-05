@@ -1,14 +1,14 @@
 #include <openssl/ssl.h>
+#include "jni.h"
+#include "jni-util.h"
+#include "avian/common.h"
 
-static SSL_CTX* create() {
-    SSL_load_error_strings();
-    SSL_library_init();
-    OpenSSL_add_all_algorithms();
-    SSL_CTX* ctx = SSL_CTX_new(SSLv2_method());
+namespace avian {
+namespace classpath {
+namespace sslcontext {
+    static SSL_CTX* create(/*JNIEnv**/);
 
-    if(ctx == NULL) {
-        printf("ERROR Making Context\n");
-        exit(1);
-    }
-    return ctx;
+    //static void init();
+}
+}
 }
