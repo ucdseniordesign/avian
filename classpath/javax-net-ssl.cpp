@@ -4,12 +4,13 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-#define SSLCONTEXT jlong
+extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initSSL(JNIEnv*, jclass) {
+    SSL_library_init();}
 
-SSL_library_init();
 
-extern "C" JNIEXPORT SSLCONTEXT JNICALL Java_javax_net_ssl_SSLContext_create(/*JNIEnv* env, jclass*/) {
-    //SSL_library_init();
+
+extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_create(/*JNIEnv* env, jclass*/) {
+
     SSL_CTX* ctx = SSL_CTX_new(SSLv23_method());
 
     if(ctx == NULL) {
@@ -17,7 +18,4 @@ extern "C" JNIEXPORT SSLCONTEXT JNICALL Java_javax_net_ssl_SSLContext_create(/*J
         exit(1);
     }
     return (jlong)ctx;
-}/*
-extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_init(JNIEnv* env, jclass) {
-    init(env);
-}  */
+}

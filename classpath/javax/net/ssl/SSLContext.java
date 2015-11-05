@@ -2,10 +2,11 @@ package javax.net.ssl;
 
 public class SSLContext {
     private static native /* SSLContext */long create();
-    public static native void init();
+    private static native void initSSL();
+    
     private long ssl_ctx;
     public SSLContext() {            
-        SSLContext.init();
+        SSLContext.initSSL();
         ssl_ctx = create();
     }
 }
