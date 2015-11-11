@@ -10,7 +10,6 @@ public class SSLEngine {
     private volatile boolean clientMode = false;
     private volatile boolean handShakeStarted = false;
     private volatile HandshakeStatus hsState = HandshakeStatus.NOT_HANDSHAKING;
-            
     
     protected SSLEngine(long sslePtr) {
         this.sslePtr = sslePtr;
