@@ -5,6 +5,7 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
+    private static native int getHSstatus();
     
     private final long sslePtr;
     private volatile boolean clientMode = false;
@@ -37,7 +38,14 @@ public class SSLEngine {
     }
     
     public HandshakeStatus getHandshakeStatus() {
+        if (handShakeStarted == false)
+            hsState = HandshakeStatus.NOT_HANDSHAKING;      
+        else if(getHSstatus() == 0)
+            hsState = HandshakeStatus.NEED_UNWRAP;
+        else if(getHSstatus() == 1)
+            hsState = HandshakeStatus.NEED_WRAP;
+        else
+            hsState = HandshakeStatus.FINISHED;
         return hsState;
     }
-
 }
