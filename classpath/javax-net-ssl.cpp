@@ -6,9 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <openssl/err.h>
-#include <new>
 
-extern "C"
+
 struct SSLEngineState {
   SSL* sslEngine;
   BIO* inputBuffer;
@@ -88,10 +87,11 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
 extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createEngine(JNIEnv*, jclass, jlong jctxPtr) {
     SSL_CTX* ctx = (SSL_CTX*)jctxPtr;
     SSLEngineState* ssleState = (SSLEngineState*)malloc(sizeof(struct SSLEngineState));
-    //SSLEngineState* ssleState = malloc(sizeof(*ssleState));
+
     ssleState->sslEngine = SSL_new(ctx);
     ssleState->inputBuffer = BIO_new(BIO_s_mem());
     ssleState->outputBuffer = BIO_new(BIO_s_mem());
+
     SSL_set_bio(ssleState->sslEngine, ssleState->inputBuffer, ssleState->outputBuffer);
     return (jlong) ssleState;
 }
@@ -110,4 +110,14 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startServerHandS
 extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatus(JNIEnv*, jclass, jlong) {
     //SSLEngineState* ssleState = (SSLEngineState*)sslep;
     return 1;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_javax_net_ssl_SSLEngine_wrap(JNIEnv*, jclass, jlong src, jlong dst) {
+    
+}
+
+xtern "C" JNIEXPORT void JNICALL
+Java_javax_net_ssl_SSLEngine_unwrap(JNIEnv*, jclass, jlong src, jlong dst) {
+
 }

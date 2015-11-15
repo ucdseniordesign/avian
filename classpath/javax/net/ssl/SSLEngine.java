@@ -1,11 +1,14 @@
 package javax.net.ssl;
 
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import java.nio.ByteBuffer;
 
 public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
-    
+    private native void wrapData(long sslep, long srcbuf, long dstbuf);
+    private native void unwrapData(long sslep, long srcbuf, long dstbuf);
+
     private final long sslePtr;
     private volatile boolean clientMode = false;
     private volatile boolean handShakeStarted = false;
@@ -38,6 +41,13 @@ public class SSLEngine {
     
     public HandshakeStatus getHandshakeStatus() {
         return hsState;
+    }   
+    
+    public void wrap(ByteBuffer src, ByteBuffer dst) {
+    
     }
 
+    public void unwrap(ByteBuffer src, ByteBuffer dst) {
+    
+    }
 }
