@@ -113,11 +113,23 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatu
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_javax_net_ssl_SSLEngine_wrap(JNIEnv*, jclass, jlong src, jlong dst) {
+Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jobject src, jobject dst) {
+    SSLEngineState* ssleState = (SSLEngineState*)sslep;
     
+    jbyte* bbuf_src; jbyte* bbuf_dst;
+
+    bbuf_src = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(src);
+    bbuf_dst = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(dst);
+
+    int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
+            sizeof(bbuf_src)-1);
+    int bytes_encrypted = 0;
+    while(src_data > 0) {
+        SSL_write(ssleState->sslEngine, bbuf_src, sizeof(bbuf_src)-1);
+        bytes_encrypted = BIO_read(ssleState->outputBuffer, bbuf_dst,
+                sizeof(bbuf_dst)-1);
+    }
+    bytes_encrypted++;  // to supress unused variable error, to be used
+                        // for SSLEngineResult
 }
 
-xtern "C" JNIEXPORT void JNICALL
-Java_javax_net_ssl_SSLEngine_unwrap(JNIEnv*, jclass, jlong src, jlong dst) {
-
-}
