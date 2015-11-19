@@ -118,29 +118,28 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jobject 
    
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
    
-    jbyte* bbuf_src; jbyte* bbuf_dst;
+   
+    jbyte *src_ptr;
+    jbyte *dst_ptr;
     
-    bbuf_src = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(src);
-    bbuf_dst = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(dst);
-
+    src_ptr = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(src);
+    dst_ptr = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(dst);
+    printf("address src_ptr: %p\n", &src_ptr);
+    printf("contents of src_ptr: %c\n", *src_ptr);
     //int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
     //        sizeof(bbuf_src)-1);
 
     //printf("number of bytes in src: %d\n, result of BIO_write: %d\n",
     //        (int)sizeof(bbuf_src), src_data);
-    printf("number of bytes in src: %d\n", (int)sizeof(bbuf_src));
-    printf("number of bytes in dst: %d\n", (int)sizeof(bbuf_dst));
+    printf("number of bytes in src: %d\n", (int)sizeof(src));
+    printf("number of bytes in dst: %d\n", (int)sizeof(dst_ptr));
     int bytes_encrypted = 0;
-
-    return;
-
-    while(sizeof(bbuf_src)>0) {
-        printf("enter while loop");
-        SSL_write(ssleState->sslEngine, bbuf_src, sizeof(bbuf_src)-1);
-
-        bytes_encrypted = BIO_read(ssleState->outputBuffer, bbuf_dst,
-                sizeof(bbuf_dst)-1);
-    }
+        
+    SSL_write(ssleState->sslEngine, src_ptr, sizeof(src_ptr)-1);
+    printf("past SSL_write\n");
+    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr,
+                sizeof(dst_ptr)-1);
+    printf("past BIO_read\n");
     bytes_encrypted++;  // to supress unused variable error, to be used
                         // for SSLEngineResult
 }

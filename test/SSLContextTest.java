@@ -13,8 +13,10 @@ public class SSLContextTest {
         String plaintxt = "Hello World";
 
         ByteBuffer ptBB = ByteBuffer.wrap(plaintxt.getBytes());                
-        ByteBuffer ctBB = ByteBuffer.allocateDirect(8192);     
+        ByteBuffer ctBB = ByteBuffer.allocateDirect(ptBB.capacity());
 
+        System.out.println("capacity of ptBB: " + ptBB.capacity());
+        System.out.println("capacity of ctBB: " + ctBB.capacity());
         sslEng.wrap(ptBB, ctBB);
                 
         String ciphertxt = new String(ctBB.array());       

@@ -43,6 +43,7 @@ public class SSLEngine {
     }   
     
     public void wrap(ByteBuffer src, ByteBuffer dst) {
+
         wrapData(sslePtr, src, dst);    
     }
 
