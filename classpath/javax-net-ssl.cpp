@@ -68,7 +68,7 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
       printf("Error loading certFile\n");
       exit(1);
     }
-    printf("TEST SETTING CERT2\n");
+
     /* set the private key from KeyFile (may be the same as CertFile) */
     if ( SSL_CTX_use_PrivateKey_file(ctx, kp, SSL_FILETYPE_PEM) <= 0 ) {
       printf("Error loading keyFile\n");
@@ -81,6 +81,7 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
     }
     env->ReleaseStringUTFChars(keyPath, kp);
     env->ReleaseStringUTFChars(certPath, cp);
+
 }
 
 
@@ -114,18 +115,29 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatu
 
 extern "C" JNIEXPORT void JNICALL
 Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jobject src, jobject dst) {
+   
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
-    
+   
     jbyte* bbuf_src; jbyte* bbuf_dst;
-
+    
     bbuf_src = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(src);
     bbuf_dst = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(dst);
 
-    int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
-            sizeof(bbuf_src)-1);
+    //int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
+    //        sizeof(bbuf_src)-1);
+
+    //printf("number of bytes in src: %d\n, result of BIO_write: %d\n",
+    //        (int)sizeof(bbuf_src), src_data);
+    printf("number of bytes in src: %d\n", (int)sizeof(bbuf_src));
+    printf("number of bytes in dst: %d\n", (int)sizeof(bbuf_dst));
     int bytes_encrypted = 0;
-    while(src_data > 0) {
+
+    return;
+
+    while(sizeof(bbuf_src)>0) {
+        printf("enter while loop");
         SSL_write(ssleState->sslEngine, bbuf_src, sizeof(bbuf_src)-1);
+
         bytes_encrypted = BIO_read(ssleState->outputBuffer, bbuf_dst,
                 sizeof(bbuf_dst)-1);
     }
