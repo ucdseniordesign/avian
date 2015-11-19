@@ -114,16 +114,17 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatu
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jobject src, jobject dst) {
+Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jbyteArray src, jbyteArray dst) {
    
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
    
    
-    jbyte *src_ptr;
-    jbyte *dst_ptr;
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
     
-    src_ptr = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(src);
-    dst_ptr = (jbyte*)env->JNIEnv_::GetDirectBufferAddress(dst);
+    jsize src_len = env->GetArrayLength(src);
+    jsize dst_len = env->GetArrayLength(dst);
+
     printf("address src_ptr: %p\n", &src_ptr);
     printf("contents of src_ptr: %c\n", *src_ptr);
     //int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
@@ -131,8 +132,8 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jobject 
 
     //printf("number of bytes in src: %d\n, result of BIO_write: %d\n",
     //        (int)sizeof(bbuf_src), src_data);
-    printf("number of bytes in src: %d\n", (int)sizeof(src));
-    printf("number of bytes in dst: %d\n", (int)sizeof(dst_ptr));
+    printf("number of bytes in src: %d\n", src_len);
+    printf("number of bytes in dst: %d\n", dst_len);
     int bytes_encrypted = 0;
         
     SSL_write(ssleState->sslEngine, src_ptr, sizeof(src_ptr)-1);
