@@ -113,11 +113,11 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatu
     return 1;
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jbyteArray src, jbyteArray dst) {
+extern "C" JNIEXPORT jint JNICALL
+Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src, jbyteArray dst) {
    
-    SSLEngineState* ssleState = (SSLEngineState*)sslep;
-   
+    SSLEngineState* ssleState = (SSLEngineState*)sslep;   
    
     jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
     jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
@@ -125,23 +125,32 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep, jbyteArr
     jsize src_len = env->GetArrayLength(src);
     jsize dst_len = env->GetArrayLength(dst);
 
-    printf("address src_ptr: %p\n", &src_ptr);
-    printf("contents of src_ptr: %c\n", *src_ptr);
-    //int src_data = BIO_write(ssleState->inputBuffer, bbuf_src,
-    //        sizeof(bbuf_src)-1);
-
-    //printf("number of bytes in src: %d\n, result of BIO_write: %d\n",
-    //        (int)sizeof(bbuf_src), src_data);
-    printf("number of bytes in src: %d\n", src_len);
-    printf("number of bytes in dst: %d\n", dst_len);
-    int bytes_encrypted = 0;
+    jint bytes_encrypted = 0;
         
-    SSL_write(ssleState->sslEngine, src_ptr, sizeof(src_ptr)-1);
-    printf("past SSL_write\n");
-    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr,
-                sizeof(dst_ptr)-1);
-    printf("past BIO_read\n");
-    bytes_encrypted++;  // to supress unused variable error, to be used
-                        // for SSLEngineResult
+    SSL_write(ssleState->sslEngine, src_ptr, src_len);
+   
+    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
+
+    return bytes_encrypted; 
 }
 
+extern "C" JNIEXPORT jint JNICALL
+Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src, jbyteArray dst) {
+
+    SSLEngineState* ssleState = (SSLEngineState*)sslep;
+
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
+
+    jsize src_len = env->GetArrayLength(src);
+    jsize dst_len = env->GetArrayLength(dst);
+
+    jint bytes_decrypted = 0;
+
+    bytes_decrypted = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
+
+    SSL_read(ssleState->sslEngine, dst_ptr, dst_len);
+
+    return bytes_decrypted;
+}

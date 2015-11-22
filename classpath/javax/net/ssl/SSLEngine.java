@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
-    private native void wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
 
     private final long sslePtr;
     private volatile boolean clientMode = false;
@@ -44,12 +45,17 @@ public class SSLEngine {
     
     public void wrap(ByteBuffer src, ByteBuffer dst) {
         byte[] srcArr = new byte[src.remaining()];
-        byte[] dstArr = new byte[src.remaining()];
+        byte[] dstArr = new byte[dst.remaining()];
         src.get(srcArr);
-        wrapData(sslePtr, srcArr, dstArr);    
+        int bytesEncrypted = wrapData(sslePtr, srcArr, dstArr);    
+        dst.put(dstArr);
     }
 
     public void unwrap(ByteBuffer src, ByteBuffer dst) {
-    
+        byte[] srcArr = new byte[src.remaining()];
+        byte[] dstArr = new byte[dst.remaining()];
+        src.get(srcArr);
+        int bytesDecrypted = unwrapData(sslePtr, srcArr, dstArr);
+        dst.put(dstArr);
     }
 }

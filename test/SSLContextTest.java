@@ -13,10 +13,24 @@ public class SSLContextTest {
         String plaintxt = "Hello World";
         ByteBuffer ptBB = ByteBuffer.wrap(plaintxt.getBytes());
         ByteBuffer ctBB = ByteBuffer.allocateDirect(ptBB.capacity());
-
+        byte[] ptArr = new byte[ptBB.remaining()];
+       
         sslEng.wrap(ptBB, ctBB);
-        System.out.println(ctBB.capacity());
-        //String ciphertxt = new String(ctBB.array());
+        ptBB.clear();
+        sslEng.unwrap(ctBB, ptBB);
+
+        /*
+        byte[] ptArr = new byte[ptBB.remaining()];
+        ptBB.get(ptArr);
+        String plaintxt_ = new String(ptArr);
+        System.out.println(plaintxt_);
+
+        byte[] ctArr = new byte[ctBB.remaining()];
+        ctBB.get(ctArr);
+        String ciphertxt = new String(ctArr);
+        System.out.println(ciphertxt);
+        */
         System.out.println("---------SSL----------");
+        
     }
 }
