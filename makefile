@@ -475,7 +475,7 @@ converter-cflags = -D__STDC_CONSTANT_MACROS -std=c++0x -Iinclude/ -Isrc/ \
 
 cflags = $(build-cflags)
 
-common-lflags = -lm -lz -lssl
+common-lflags = -lm -lz -lssl -lcrypto
 
 ifeq ($(use-clang),true)
 	ifeq ($(build-kernel),darwin)
