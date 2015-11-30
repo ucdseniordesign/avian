@@ -102,11 +102,11 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startServerHandS
 }
 
 
-extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHSstatus(JNIEnv*, jclass, jlong sslep) {
+extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLEngine_getHSstatus(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
     if(BIO_eof(ssleState->outputBuffer) == 0)
         return 0;
-    else if(BIO_eof(ssleState->inputBuffer) == 0) 
+    else if(SSL_pending(ssleState->sslEngine) > 0) 
         return 1;
     else  
         return 2;  

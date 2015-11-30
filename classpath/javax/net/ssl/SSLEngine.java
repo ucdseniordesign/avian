@@ -38,14 +38,35 @@ public class SSLEngine {
     }
     
     public HandshakeStatus getHandshakeStatus() {
+      
+        //check to see if connection made
         if (handShakeStarted == false)
-            hsState = HandshakeStatus.NOT_HANDSHAKING;      
-        else if(getHSstatus() == 0)
-            hsState = HandshakeStatus.NEED_UNWRAP;
-        else if(getHSstatus() == 1)
+            hsState = HandshakeStatus.NOT_HANDSHAKING;
+
+        //check if there is data in client write buffer
+        else if(this.clientMode && getHSstatus() == 0){      
             hsState = HandshakeStatus.NEED_WRAP;
+        }
+
+        //does server have data to read/unencrypt from client
+        else if(!this.clientMode && getHSstatus() == 1){
+            hsState = HandshakeStatus.NEED_UNWRAP;
+        }
+
+        //check if server has data to write to client
+        else if(!this.clientMode && getHSstatus() == 0){
+            hsState = HandshakeStatus.NEED_WRAP;
+        }
+
+        //Does client have app data to read/unencrypt from client
+        else if(this.clientMode && getHSstatus() == 1){
+            hsState = HandshakeStatus.NEED_UNWRAP;
+        }
+
+        //everything has been wrapped and unwrapped
         else
             hsState = HandshakeStatus.FINISHED;
+
         return hsState;
     }
 }
