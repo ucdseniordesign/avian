@@ -16,7 +16,7 @@ import java.io.PrintStream;
 import java.io.IOException;
 import java.io.Reader;
 
-public class Properties extends Hashtable {
+public class Properties extends Hashtable<Object, Object> {
   public void load(InputStream in) throws IOException {
     new InputStreamParser(in).parse(this);
   }
@@ -28,9 +28,9 @@ public class Properties extends Hashtable {
   public void store(OutputStream out, String comment) throws IOException {
     PrintStream os = new PrintStream(out);
     os.println("# " + comment);
-    for (Iterator it = entrySet().iterator();
+    for (Iterator<Map.Entry<Object, Object>> it = entrySet().iterator();
          it.hasNext();) {
-      Map.Entry entry = (Map.Entry)it.next();
+      Map.Entry<Object, Object> entry = it.next();
       os.print(entry.getKey());
       os.print('=');
       os.println(entry.getValue());
@@ -58,8 +58,8 @@ public class Properties extends Hashtable {
     return keys();
   }
 
-  public Set<String> stringPropertyNames() {
-    return new HashSet(keySet());
+  public Set<Object> stringPropertyNames() {
+    return new HashSet<Object>(keySet());
   }
 
   private abstract static class Parser {
@@ -79,7 +79,7 @@ public class Properties extends Hashtable {
       current.append((char) c);
     }
 
-    private void finishLine(Map<String, Object> map) {
+    private void finishLine(Map<Object, Object> map) {
       if (key != null) {
         map.put(key.toString(),
                 (value == null ? "" : value.toString().trim()));
@@ -101,7 +101,7 @@ public class Properties extends Hashtable {
       return c;
     }
 
-    void parse(Map map)
+    void parse(Map<Object, Object> map)
       throws IOException
     {
       boolean escaped = false;

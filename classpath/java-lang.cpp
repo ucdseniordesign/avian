@@ -1057,6 +1057,26 @@ extern "C" JNIEXPORT jlong JNICALL
 #endif
 }
 
+extern "C" JNIEXPORT jlong JNICALL
+    Java_java_lang_System_getBaseNanoTime(JNIEnv* e, jclass jc)
+{
+#ifdef PLATFORM_WINDOWS
+    return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
+#else
+#ifdef __APPLE__
+    return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
+#else
+    struct timespec time;
+    int status = clock_gettime(CLOCK_MONOTONIC, &time);
+    if(status == -1) {
+        return Java_java_lang_System_currentTimeMillis(e, jc)*1000*1000;
+    } else {
+        return (jlong(time.tv_sec) * (1000*1000*1000) + jlong(time.tv_nsec));
+    }
+#endif
+#endif
+}
+
 extern "C" JNIEXPORT jstring JNICALL
     Java_java_lang_System_doMapLibraryName(JNIEnv* e, jclass, jstring name)
 {
