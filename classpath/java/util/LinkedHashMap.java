@@ -240,6 +240,11 @@ public class LinkedHashMap<K, V> extends HashMap<K, V> {
     public Iterator<V> iterator() {
       return new avian.Data.ValueIterator(new MyIterator());
     }
+
+    @Override
+    public boolean retainAll(Collection<? extends V> collection) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private class MyIterator implements Iterator<Entry<K, V>> {

@@ -1,6 +1,7 @@
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import static avian.testing.Asserts.*;
 
 public class EnumSetTest {
   private enum SmallEnum {
@@ -30,37 +31,37 @@ public class EnumSetTest {
   private static void testComplimentOf() {
     EnumSet<SmallEnum> one = EnumSet.of(SmallEnum.ONE, SmallEnum.THREE);
     EnumSet<SmallEnum> two = EnumSet.complementOf(one);
-    assertElementInSet(SmallEnum.TWO, two);
-    assertSize(1, two);
+    assertContains(SmallEnum.TWO, two);
+    assertEquals(1, two.size());
   }
 
   private static void testCopyOf() {
     EnumSet<SmallEnum> one = EnumSet.of(SmallEnum.ONE, SmallEnum.THREE);
     EnumSet<SmallEnum> two = EnumSet.copyOf(one);
-    assertElementInSet(SmallEnum.ONE, two);
-    assertElementInSet(SmallEnum.THREE, two);
-    assertSize(2, two);
+    assertContains(SmallEnum.ONE, two);
+    assertContains(SmallEnum.THREE, two);
+    assertEquals(2, two.size());
   }
 
   private static void testOf() {
     EnumSet<LargerEnum> set = EnumSet.of(LargerEnum.LARGEONE, LargerEnum.LARGEFIVE, LargerEnum.LARGETWO);
-    assertElementInSet(LargerEnum.LARGEONE, set);
-    assertElementInSet(LargerEnum.LARGEFIVE, set);
-    assertElementInSet(LargerEnum.LARGETWO, set);
-    assertSize(3, set);
+    assertContains(LargerEnum.LARGEONE, set);
+    assertContains(LargerEnum.LARGEFIVE, set);
+    assertContains(LargerEnum.LARGETWO, set);
+    assertEquals(3, set.size());
   }
 
   private static void testAllOf() {
     EnumSet<SmallEnum> set = EnumSet.allOf(SmallEnum.class);
     for (SmallEnum current : SmallEnum.values()) {
-      assertElementInSet(current, set);
+      assertContains(current, set);
     }
-    assertSize(3, set);
+    assertEquals(3, set.size());
   }
   
   private static void testNoneOf() {
     EnumSet<SmallEnum> set = EnumSet.noneOf(SmallEnum.class);
-    assertSize(0, set);
+    assertEquals(0, set.size());
   }
   
   private static void testIterators() {
@@ -80,7 +81,7 @@ public class EnumSetTest {
       iterator.next();
       iterator.remove();
     }
-    assertSize(0, set);
+    assertEquals(0, set.size());
 
     exceptionCaught = false;
     try {
@@ -93,15 +94,5 @@ public class EnumSetTest {
     }
   }
   
-  private static void assertElementInSet(Enum<?> element, EnumSet<?> set) {
-    if (!set.contains(element)) {
-      throw new RuntimeException("expected " + element + " in the set!");
-    }
-  }
   
-  private static void assertSize(int expectedSize, EnumSet<?> set) {
-    if (set.size() != expectedSize) {
-      throw new RuntimeException("expected the set to be size=" + expectedSize + ", actual=" + set.size());
-    }
-  }
 }

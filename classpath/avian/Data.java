@@ -266,6 +266,20 @@ public class Data {
     public Iterator<V> iterator() {
       return new ValueIterator(map.iterator());
     }
+
+    @Override
+    public boolean retainAll(Collection<? extends V> collection) {
+      boolean changed = false;
+      Iterator<V> iter = this.iterator();
+      while(iter.hasNext()) {
+        V item = iter.next();
+        if(!collection.contains(item)) {
+          changed = true;
+          iter.remove();
+        }
+      }
+      return changed;
+    }
   }
 
   public static class KeyIterator<K, V> implements Iterator<K> {
