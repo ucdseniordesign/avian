@@ -28,8 +28,4 @@ public class SSLContext {
     public static SSLContext getInstance(String protocol) {
         return new SSLContext(protocol);
     }
-<<<<<<< HEAD
-    public native void loadCertificates(String certFile, String testFile);
-=======
->>>>>>> 04743c406fc7142999e45247996b9e9b1be1e9aa
 }
