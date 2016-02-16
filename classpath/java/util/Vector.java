@@ -11,10 +11,11 @@
 package java.util;
 
 public class Vector<T> extends AbstractList<T> implements java.io.Serializable, Cloneable, RandomAccess {
+  private static final long serialVersionUID = -1135079878521513527L;
   private final ArrayList<T> list;
 
   public Vector(int capacity) {
-    list = new ArrayList(capacity);
+    list = new ArrayList<T>(capacity);
   }
 
   public Vector() {
@@ -22,7 +23,7 @@ public class Vector<T> extends AbstractList<T> implements java.io.Serializable, 
   }
 
   public Vector(Collection<? extends T> source) {
-    list = new ArrayList(source);
+    list = new ArrayList<T>(source);
   }
 
   public synchronized int size() {
@@ -116,7 +117,7 @@ public class Vector<T> extends AbstractList<T> implements java.io.Serializable, 
   }
 
   public ListIterator<T> listIterator(int index) {
-    return new Collections.ArrayListIterator(this, index);
+    return new Collections.ArrayListIterator<T>(this, index);
   }
 
   public ListIterator<T> listIterator() {
@@ -124,11 +125,16 @@ public class Vector<T> extends AbstractList<T> implements java.io.Serializable, 
   }
 
   public Enumeration<T> elements() {
-    return new Collections.IteratorEnumeration(iterator());
+    return new Collections.IteratorEnumeration<T>(iterator());
+  }
+  
+  @Override
+  public synchronized boolean retainAll(Collection<? extends T> c) {
+    return super.retainAll(c);
   }
 
   public synchronized Object clone() {
-    Vector copy = new Vector(size());
+    Vector<T> copy = new Vector<T>(size());
     for (T t : this) {
       copy.add(t);
     }

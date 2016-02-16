@@ -10,35 +10,31 @@
 
 package java.util;
 
-import avian.Data;
 
 public class Collections {
 
   private Collections() { }
 
-  public static void shuffle(List list, Random random) {
-    Object[] array = Data.toArray(list, new Object[list.size()]);
+  public static <T> void shuffle(List<T> list, Random random) {
+    Object[] array = list.toArray();
     for (int i = 0; i < array.length; ++i) {
       int j = random.nextInt(array.length);
       Object tmp = array[i];
       array[i] = array[j];
       array[j] = tmp;
     }
- 
     list.clear();
-    for (int i = 0; i < array.length; ++i) {
-      list.add(array[i]);
-    }
+    list.addAll((Collection<? extends T>) Arrays.asList(array));
   }
 
-  public static void shuffle(List list) {
+  public static void shuffle(List<?> list) {
     shuffle(list, new Random());
   }
 
-  public static void sort(List list) {
-    sort(list, new Comparator() {
-        public int compare(Object a, Object b) {
-          return ((Comparable) a).compareTo(b);
+  public static <T extends Comparable<? super T>> void sort(List<T> list) {
+    sort(list, new Comparator<T>() {
+        public int compare(T a, T b) {
+          return a.compareTo(b);
         }
       });
   }
@@ -150,11 +146,11 @@ public class Collections {
     }
   }
 
-  public static <T> int binarySearch(List<T> list, T needle) {
+  public static <T extends Comparable<? super T>> int binarySearch(List<T> list, T needle) {
     int left = -1, right = list.size();
     while (left + 1 < right) {
       int middle = (left + right) >> 1;
-      int result = ((Comparable)needle).compareTo(list.get(middle));
+      int result = needle.compareTo(list.get(middle));
       if (result < 0) {
         right = middle;
       } else if (result > 0) {
@@ -175,21 +171,16 @@ public class Collections {
     }
   }
 
-  public static final List EMPTY_LIST
-    = new UnmodifiableList<Object>(new ArrayList<Object>(0));
-
   public static final <E> List<E> emptyList() {
-    return EMPTY_LIST;
+    return new UnmodifiableList<E>(new ArrayList<E>(0));
   }
 
   public static final <K,V> Map<K,V> emptyMap() {
-    return (Map<K, V>) new UnmodifiableMap<Object, Object>(
-      new HashMap<Object, Object>(0));
+    return new UnmodifiableMap<K,V>(new HashMap<K, V>(0));
   }
 
   public static final <T> Set<T> emptySet() {
-    return (Set<T>) new UnmodifiableSet<Object>(
-      new HashSet<Object>(0));
+    return new UnmodifiableSet<T>(new HashSet<T>(0));
   }
   
   public static <T> Enumeration<T> enumeration(Collection<T> c) {
@@ -226,7 +217,9 @@ public class Collections {
     }
 
     public int size() {
-      synchronized (lock) { return collection.size(); }
+      synchronized (lock) { 
+        return collection.size(); 
+      }
     }
 
     public boolean isEmpty() {
@@ -234,31 +227,43 @@ public class Collections {
     }
 
     public boolean contains(Object e) {
-      synchronized (lock) { return collection.contains(e); }
+      synchronized (lock) { 
+        return collection.contains(e); 
+      }
     }
 
     public boolean add(T e) {
-      synchronized (lock) { return collection.add(e); }
+      synchronized (lock) { 
+        return collection.add(e); 
+      }
     }
 
     public boolean addAll(Collection<? extends T> collection) {
-      synchronized (lock) { return this.collection.addAll(collection); }
+      synchronized (lock) { 
+        return this.collection.addAll(collection); 
+      }
     }
 
     public boolean remove(Object e) {
-      synchronized (lock) { return collection.remove((T)e); }
+      synchronized (lock) { 
+        return collection.remove(e); 
+      }
     }
 
     public Object[] toArray() {
       return toArray(new Object[size()]);      
     }
 
-    public <T> T[] toArray(T[] array) {
-      synchronized (lock) { return collection.toArray(array); }
+    public <E> E[] toArray(E[] array) {
+      synchronized (lock) { 
+        return collection.toArray(array); 
+      }
     }
 
     public void clear() {
-      synchronized (lock) { collection.clear(); }
+      synchronized (lock) { 
+        collection.clear(); 
+      }
     }
 
     public Iterator<T> iterator() {
@@ -266,11 +271,31 @@ public class Collections {
     }
 
     public boolean containsAll(Collection<?> c) {
-      synchronized (lock) { return collection.containsAll(c); }
+      synchronized (lock) { 
+        return collection.containsAll(c); 
+      }
     }
 
     public boolean removeAll(Collection<?> c) {
-      synchronized (lock) { return collection.removeAll(c); }
+      synchronized (lock) {
+        return collection.removeAll(c); 
+      }
+    }
+
+    @Override
+    public boolean retainAll(Collection<? extends T> collection) {
+      boolean changed = false;
+      synchronized (lock) {
+        Iterator<T> iter = this.iterator();
+        while(iter.hasNext()) {
+          T item = iter.next();
+          if(!collection.contains(item)) {
+            changed = true;
+            iter.remove();
+          }
+        }
+      }
+      return changed;
     }
   }
   
@@ -415,6 +440,20 @@ public class Collections {
       // as described in the javadocs, user should be synchronized on list before calling
       return list.listIterator();
     }
+    
+    @Override
+    public boolean retainAll(Collection<?extends T> c) {
+      boolean changed = false;
+      Iterator<T> iter = this.iterator();
+      while(iter.hasNext()) {
+        T item = iter.next();
+        if(!c.contains(item)) {
+          changed = true;
+          iter.remove();
+        }
+      }
+      return changed;
+    }
   }
   
   static class RandomAccessSynchronizedList<T>
@@ -461,7 +500,7 @@ public class Collections {
 
   static class ArrayListIterator<T> implements ListIterator<T> {
     private final List<T> list;
-    private int toRemove = -1;
+    private int prevIndex = -1;
     private int index;
 
     public ArrayListIterator(List<T> list) {
@@ -479,7 +518,7 @@ public class Collections {
 
     public T previous() {
       if (hasPrevious()) {
-        toRemove = index;
+        prevIndex = index;
         return list.get(index--);
       } else {
         throw new NoSuchElementException();
@@ -488,7 +527,7 @@ public class Collections {
 
     public T next() {
       if (hasNext()) {
-        toRemove = ++index;
+        prevIndex = ++index;
         return list.get(index);
       } else {
         throw new NoSuchElementException();
@@ -500,10 +539,41 @@ public class Collections {
     }
 
     public void remove() {
-      if (toRemove != -1) {
-        list.remove(toRemove);
-        index = toRemove - 1;
-        toRemove = -1;
+      if (prevIndex != -1) {
+        list.remove(prevIndex);
+        index = prevIndex - 1;
+        prevIndex = -1;
+      } else {
+        throw new IllegalStateException();
+      }
+    }
+
+    @Override
+    public int nextIndex() {
+      if(hasNext()) {
+        return index+1;
+      }
+      return index;
+    }
+
+    @Override
+    public void add(T e) {
+      list.add(index, e);
+    }
+
+    @Override
+    public int previousIndex() {
+      if(hasPrevious()) {
+        return index-1;
+      }
+      return -1;
+    }
+
+    @Override
+    public void set(T e) {
+      if(prevIndex >= 0) {
+        list.add(prevIndex, e);
+        list.remove(prevIndex+1);
       } else {
         throw new IllegalStateException();
       }
@@ -514,16 +584,17 @@ public class Collections {
     return new UnmodifiableList<T>(list);
   }
 
-  static class UnmodifiableList<T> implements List<T> {
+  static class UnmodifiableList<T> extends UnmodifiableCollection<T> implements List<T> {
 
-    private List<T> inner;
+    private List<T> innerList;
 
     UnmodifiableList(List<T> l) {
-      this.inner = l;
+      super(l);
+      this.innerList = l;
     }
 
     public T get(int index) {
-      return inner.get(index);
+      return innerList.get(index);
     }
 
     public T set(int index, T value) {
@@ -547,63 +618,28 @@ public class Collections {
     }
 
     public Iterator<T> iterator() {
-      return new UnmodifiableIterator<T>(inner.iterator());
+      return new UnmodifiableIterator<T>(innerList.iterator());
     }
 
     public int indexOf(Object value) {
-      return inner.indexOf(value);
+      return innerList.indexOf(value);
     }
 
     public int lastIndexOf(Object value) {
-      return inner.lastIndexOf(value);
-    }
-
-    public boolean isEmpty() {
-      return inner.isEmpty();
+      return innerList.lastIndexOf(value);
     }
 
     public ListIterator<T> listIterator(int index) {
-      return new UnmodifiableListIterator<T>(inner.listIterator(index));
+      return new UnmodifiableListIterator<T>(innerList.listIterator(index));
     }
 
     public ListIterator<T> listIterator() {
-      return new UnmodifiableListIterator<T>(inner.listIterator());
+      return new UnmodifiableListIterator<T>(innerList.listIterator());
     }
 
-    public int size() {
-      return inner.size();
-    }
-
-    public boolean contains(Object element) {
-      return inner.contains(element);
-    }
-
-    public boolean addAll(Collection<? extends T> collection) {
-      throw new UnsupportedOperationException();
-    }
-
-    public Object[] toArray() {
-      return inner.toArray();
-    }
-
-    public <S> S[] toArray(S[] array) {
-      return inner.toArray(array);
-    }
-
-    public void clear() {
-      throw new UnsupportedOperationException();
-    }
-
-    public boolean removeAll(Collection<?> c) {
-      throw new UnsupportedOperationException();
-    }
-
+    @Override
     public boolean addAll(int startIndex, Collection<? extends T> c) {
       throw new UnsupportedOperationException();
-    }
-
-    public boolean containsAll(Collection<?> c) {
-      return inner.containsAll(c);
     }
   }
 
@@ -710,6 +746,26 @@ public class Collections {
     public T previous() {
       return innerListIterator.previous();
     }
+
+    @Override
+    public void add(T e) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int nextIndex() {
+      return innerListIterator.nextIndex();
+    }
+
+    @Override
+    public int previousIndex() {
+      return innerListIterator.previousIndex();
+    }
+
+    @Override
+    public void set(T e) {
+      throw new UnsupportedOperationException();
+    }
   }
   
   static class UnmodifiableCollection<T> implements Collection<T> {
@@ -778,6 +834,11 @@ public class Collections {
     public void clear() {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean retainAll(Collection<? extends T> collection) {
+      throw new UnsupportedOperationException();
+    }
   }
   
   public static <T> UnmodifiableCollection<T> unmodifiableCollection(Collection<T> collection) {
@@ -811,6 +872,6 @@ public class Collections {
   public static <T> List<T> singletonList(T o) {
     ArrayList<T> list = new ArrayList<T>(1);
     list.add(o);
-    return new UnmodifiableList(list);
+    return new UnmodifiableList<T>(list);
   }
 }

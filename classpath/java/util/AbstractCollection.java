@@ -27,6 +27,19 @@ public abstract class AbstractCollection<T> implements Collection<T> {
     }
     return result;
   }
+  
+  public boolean retainAll(Collection<? extends T> c) {
+    boolean changed = false;
+    Iterator<T> iter = this.iterator();
+    while(iter.hasNext()) {
+      T item = iter.next();
+      if(!c.contains(item)) {
+        changed = true;
+        iter.remove();
+      }
+    }
+    return changed;
+  }
 
   public void clear() {
     throw new UnsupportedOperationException("clear() in "

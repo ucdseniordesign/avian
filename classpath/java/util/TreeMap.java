@@ -16,7 +16,7 @@ import java.io.ObjectOutputStream;
 
 public class TreeMap<K,V> implements NavigableMap<K,V> {
   private final Comparator<K> comparator;
-  private transient TreeSet<MyEntry<K,V>> set;
+  private transient TreeSet<Entry<K,V>> set;
 
   public TreeMap(Comparator<K> comparator) {
     this.comparator = comparator;
@@ -62,12 +62,12 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
 
   @Override
   public K firstKey() {
-    return set.first().key;
+    return set.first().getKey();
   }
 
   @Override
   public K lastKey() {
-    return set.last().key;
+    return set.last().getKey();
   }
 
   @Override
@@ -89,13 +89,16 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
   }
 
   public V get(Object key) {
-    MyEntry<K,V> e = set.find(new MyEntry(key, null));
-    return e == null ? null : e.value;
+    if(key == null) {
+      throw new NullPointerException();
+    }
+    Entry<K,V> e = set.find(new MyEntry(key, null));
+    return e == null ? null : e.getValue();
   }
 
   public V put(K key, V value) {
-    MyEntry<K,V> e = set.addAndReplace(new MyEntry(key, value));
-    return e == null ? null : e.value;
+    Entry<K,V> e = set.addAndReplace(new MyEntry<K,V>(key, value));
+    return e == null ? null : e.getValue();
   }
 
   public void putAll(Map<? extends K,? extends V> elts) {
@@ -105,8 +108,8 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
   }
     
   public V remove(Object key) {
-    MyEntry<K,V> e = set.removeAndReturn(new MyEntry(key, null));
-    return e == null ? null : e.value;
+    Entry<K,V> e = set.removeAndReturn(new MyEntry(key, null));
+    return e == null ? null : e.getValue();
   }
 
   public void clear() {
@@ -139,7 +142,7 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
   }
 
   public Set<Entry<K, V>> entrySet() {
-    return (Set<Entry<K, V>>) (Set) set;
+    return set;
   }
 
   public Set<K> keySet() {
@@ -189,7 +192,7 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
     }
 
     public boolean add(K key) {
-      return set.addAndReplace(new MyEntry(key, null)) != null;
+      return set.addAndReplace(new MyEntry<K, V>(key, null)) != null;
     }
 
     public boolean addAll(Collection<? extends K> collection) {
@@ -215,7 +218,7 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
     }
 
     public Iterator<K> iterator() {
-      return new avian.Data.KeyIterator(set.iterator());
+      return new avian.Data.KeyIterator<K,V>(set.iterator());
     }
   }
 
@@ -276,7 +279,12 @@ public class TreeMap<K,V> implements NavigableMap<K,V> {
     }
 
     public Iterator<V> iterator() {
-      return new avian.Data.ValueIterator(set.iterator());
+      return new avian.Data.ValueIterator<K,V>(set.iterator());
+    }
+
+    @Override
+    public boolean retainAll(Collection<? extends V> collection) {
+      throw new UnsupportedOperationException();
     }
   }
 

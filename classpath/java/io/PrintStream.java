@@ -13,6 +13,7 @@ package java.io;
 public class PrintStream extends OutputStream {
   private final OutputStream out;
   private final boolean autoFlush;
+  private volatile boolean trouble = false;
 
   private static class Static {
     private static final byte[] newline
@@ -38,12 +39,27 @@ public class PrintStream extends OutputStream {
   public PrintStream(OutputStream out) {
     this(out, false);
   }
+  
+  public boolean checkError() {
+    flush();
+    return trouble;
+  }
+  
+  protected void setError() {
+    trouble = true;
+  }
+  
+  protected void clearError() {
+    trouble = false;
+  }
 
   public synchronized void print(String s) {
     try {
       out.write(s.getBytes());
       if (autoFlush) flush();
-    } catch (IOException e) { }
+    } catch (IOException e) { 
+      setError();
+    }
   }
 
   public void print(Object o) {
@@ -79,15 +95,12 @@ public class PrintStream extends OutputStream {
   }
 
   public synchronized PrintStream printf(java.util.Locale locale, String format, Object... args) {
-    // should this be cached in an instance variable??
-    final java.util.Formatter formatter = new java.util.Formatter(this);
-    formatter.format(locale, format, args);
+    print(String.format(locale, format, args));
     return this;
   }
 
   public synchronized PrintStream printf(String format, Object... args) {
-    final java.util.Formatter formatter = new java.util.Formatter(this);
-    formatter.format(format, args);
+    print(String.format(format, args));
     return this;
   }
 
@@ -104,14 +117,18 @@ public class PrintStream extends OutputStream {
       out.write(s.getBytes());    
       out.write(Static.newline);
       if (autoFlush) flush();
-    } catch (IOException e) { }
+    } catch (IOException e) { 
+      setError();
+    }
   }
 
   public synchronized void println() {
     try {
       out.write(Static.newline);
       if (autoFlush) flush();
-    } catch (IOException e) { }
+    } catch (IOException e) { 
+      trouble = true;
+    }
   }
 
   public void println(Object o) {
@@ -151,20 +168,28 @@ public class PrintStream extends OutputStream {
     if (autoFlush && c == '\n') flush();
   }
 
-  public void write(byte[] buffer, int offset, int length) throws IOException {
-    out.write(buffer, offset, length);
-    if (autoFlush) flush();
+  public void write(byte[] buffer, int offset, int length) {
+    try {
+      out.write(buffer, offset, length);
+      if (autoFlush) flush();
+    } catch(IOException e) {
+      setError();
+    }
   }
 
   public void flush() {
     try {
       out.flush();
-    } catch (IOException e) { }
+    } catch (IOException e) { 
+      setError();
+    }
   }
 
   public void close() {
     try {
       out.close();
-    } catch (IOException e) { }
+    } catch (IOException e) { 
+      setError();
+    }
   }
 }
