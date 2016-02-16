@@ -2,6 +2,7 @@
 #include "jni.h"
 #include "jni-util.h"
 #include <openssl/ssl.h>
+#include <stdlib.h>
 #include <string.h>
 #include <openssl/err.h>
 
@@ -10,7 +11,7 @@ struct SSLEngineState {
   SSL* sslEngine;
   BIO* inputBuffer;
   BIO* outputBuffer;
-}
+};
 
 extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initCTX(JNIEnv*, jclass) {
     SSL_load_error_strings();
@@ -24,8 +25,8 @@ extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createCTX(JNIEn
     const char *SSLV3 = "SSLv3";
     const char *TLS = "TLS";
     const char *TLSV1 = "TLSv1";
-    const char *TLSV11 = "TLSv1.1";
-    const char *TLSV12 = "TLSv1.2";
+//    const char *TLSV11 = "TLSv1.1";
+//    const char *TLSV12 = "TLSv1.2";
 
 
     const char *pro = env->GetStringUTFChars(protocol, JNI_FALSE);
@@ -37,10 +38,10 @@ extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createCTX(JNIEn
         ctx = SSL_CTX_new(SSLv3_method());
     } else if(strcmp(pro, TLS) == 0 || strcmp(pro, TLSV1) == 0) {
         ctx = SSL_CTX_new(TLSv1_method());
-    } else if(strcmp(pro, TLSV11) == 0) {
-        ctx = SSL_CTX_new(TLSv1_1_method());
-    } else if(strcmp(pro, TLSV12) == 0 ) {
-        ctx = SSL_CTX_new(TLSv1_2_method());
+//    } else if(strcmp(pro, TLSV11) == 0) {
+//        ctx = SSL_CTX_new(TLSv1_1_method());
+//    } else if(strcmp(pro, TLSV12) == 0 ) {
+//        ctx = SSL_CTX_new(TLSv1_2_method());
     } else {
         const char *className = "java/security/NoSuchAlgorithmException";
         jclass exClass = env->FindClass(className);
@@ -84,7 +85,7 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
 
 extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createEngine(JNIEnv*, jclass, jlong jctxPtr) {
     SSL_CTX* ctx = (SSL_CTX*)jctxPtr;
-    SSLEngineState* ssleState = new SSLEngineState();
+    SSLEngineState* ssleState = (SSLEngineState*)malloc(sizeof(struct SSLEngineState));
     ssleState->sslEngine = SSL_new(ctx);
     ssleState->inputBuffer = BIO_new(BIO_s_mem());
     ssleState->outputBuffer = BIO_new(BIO_s_mem());
@@ -102,7 +103,12 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startServerHandS
     SSL_accept(ssleState->sslEngine);
 }
 
-
-extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatus(JNIEnv*, jclass, jlong sslep) {
+extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLEngine_getHSstatus(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
+    if(BIO_eof(ssleState->outputBuffer) == 0)
+        return 0; 
+    else if(SSL_pending(ssleState->sslEngine) > 0) 
+        return 1;
+    else  
+        return 2;  
 }
