@@ -1,8 +1,10 @@
 // javax-net-ssl.cpp
+
 #include "jni.h"
 #include "jni-util.h"
 #include <openssl/ssl.h>
 #include <string.h>
+#include <stdlib.h>
 #include <openssl/err.h>
 
 
@@ -10,7 +12,7 @@ struct SSLEngineState {
   SSL* sslEngine;
   BIO* inputBuffer;
   BIO* outputBuffer;
-}
+};
 
 extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initCTX(JNIEnv*, jclass) {
     SSL_load_error_strings();
@@ -66,7 +68,7 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
       printf("Error loading certFile\n");
       exit(1);
     }
-    printf("TEST SETTING CERT2\n");
+
     /* set the private key from KeyFile (may be the same as CertFile) */
     if ( SSL_CTX_use_PrivateKey_file(ctx, kp, SSL_FILETYPE_PEM) <= 0 ) {
       printf("Error loading keyFile\n");
@@ -79,15 +81,18 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_setKeyAndCert(JN
     }
     env->ReleaseStringUTFChars(keyPath, kp);
     env->ReleaseStringUTFChars(certPath, cp);
+
 }
 
 
 extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createEngine(JNIEnv*, jclass, jlong jctxPtr) {
     SSL_CTX* ctx = (SSL_CTX*)jctxPtr;
-    SSLEngineState* ssleState = new SSLEngineState();
+    SSLEngineState* ssleState = (SSLEngineState*)malloc(sizeof(struct SSLEngineState));
+
     ssleState->sslEngine = SSL_new(ctx);
     ssleState->inputBuffer = BIO_new(BIO_s_mem());
     ssleState->outputBuffer = BIO_new(BIO_s_mem());
+
     SSL_set_bio(ssleState->sslEngine, ssleState->inputBuffer, ssleState->outputBuffer);
     return (jlong) ssleState;
 }
@@ -103,6 +108,49 @@ extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startServerHandS
 }
 
 
-extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatus(JNIEnv*, jclass, jlong sslep) {
+extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatus(JNIEnv*, jclass, jlong) {
+    //SSLEngineState* ssleState = (SSLEngineState*)sslep;
+    return 1;
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src, jbyteArray dst) {
+   
+    SSLEngineState* ssleState = (SSLEngineState*)sslep;   
+   
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
+    
+    jsize src_len = env->GetArrayLength(src);
+    jsize dst_len = env->GetArrayLength(dst);
+
+    jint bytes_encrypted = 0;
+        
+    SSL_write(ssleState->sslEngine, src_ptr, src_len);
+   
+    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
+
+    return bytes_encrypted; 
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src, jbyteArray dst) {
+
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
+
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
+
+    jsize src_len = env->GetArrayLength(src);
+    jsize dst_len = env->GetArrayLength(dst);
+
+    jint bytes_decrypted = 0;
+
+    bytes_decrypted = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
+
+    SSL_read(ssleState->sslEngine, dst_ptr, dst_len);
+
+    return bytes_decrypted;
 }
