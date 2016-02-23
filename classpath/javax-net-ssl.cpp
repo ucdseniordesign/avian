@@ -125,10 +125,17 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     jsize src_len = env->GetArrayLength(src);
     jsize dst_len = env->GetArrayLength(dst);
 
+    printf("src_len is %d long, dst_len is %d long\n", src_len, dst_len);
+    for(int i=0; i<src_len; i++)
+        printf("contents of element %d: %d\n", i, src_ptr[i]);
+
     jint bytes_encrypted = 0;
-        
-    SSL_write(ssleState->sslEngine, src_ptr, src_len);
-   
+    int bytes_SSL_written = 0;  
+
+    bytes_SSL_written = SSL_write(ssleState->sslEngine, src_ptr, src_len);
+
+    
+    printf("number of bytes written: %d\n", bytes_SSL_written);
     bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
 
     return bytes_encrypted; 
