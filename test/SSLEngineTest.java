@@ -6,9 +6,18 @@ public class SSLEngineTest {
 
     public static void main(String[] args) {
         System.out.println("---------SSLEngine----------");
+        // Create SSL Context using SSL version 3 
         SSLContext sslCtx = SSLContext.getInstance("SSLv3");
+
+        // Load Key and Certificate using .pem format
         sslCtx.loadPemCertAndKey("/home/jason/AvianSSLsample/test.pem", "/home/jason/AvianSSLsample/test.pem");
-        SSLEngine sslEng = sslCtx.createSSLEngine();
+
+        SSLEngine serverEng = sslCtx.createSSLEngine();
+        serverEng.setUseClientMode(false);
+        SSLEngine clientEng = sslCtx.createSSLEngine();
+        clientEng.setUseClientMode(true);
+        
+        serverEng.beginHandshake();
 
         String plaintxt = "Hello World";
         ByteBuffer ptBB = ByteBuffer.wrap(plaintxt.getBytes());
@@ -17,13 +26,12 @@ public class SSLEngineTest {
         byte[] ptArr = ptBB.array();
 
         /** test contents of byte array created from ByteBuffer **/
-        for(int i=0; i<ptArr.length; i++)
-            System.out.println(ptArr[i]);
-
-        System.out.println(ptArr.length);
+        // for(int i=0; i<ptArr.length; i++)
+        //     System.out.println(ptArr[i]);
+        // System.out.println(ptArr.length);
         
         // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
-        sslEng.wrap(ptBB, ctBB);
+        serverEng.wrap(ptBB, ctBB);
 
         byte[] ctArr = ctBB.array();
 

@@ -28,6 +28,7 @@ extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createCTX(JNIEn
     const char *TLSV1 = "TLSv1";
     const char *TLSV11 = "TLSv1.1";
     const char *TLSV12 = "TLSv1.2";
+    //const char *noEncrypt = "noEncrypt";
 
 
     const char *pro = env->GetStringUTFChars(protocol, JNI_FALSE);
@@ -97,18 +98,18 @@ extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createEngine(JN
     return (jlong) ssleState;
 }
 
-extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startClientHandShake(JNIEnv*, jclass, jlong sslep) {
+extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLEngine_startClientHandShake(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
     SSL_connect(ssleState->sslEngine);
 }
 
-extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLContext_startServerHandShake(JNIEnv*, jclass, jlong sslep) {
+extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLEngine_startServerHandShake(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
     SSL_accept(ssleState->sslEngine);
 }
 
 
-extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatus(JNIEnv*, jclass, jlong) {
+extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLEngine_getHandshakeStatus(JNIEnv*, jclass, jlong) {
     //SSLEngineState* ssleState = (SSLEngineState*)sslep;
     return 1;
 }
@@ -116,9 +117,13 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLContext_getHandshakeStatu
 extern "C" JNIEXPORT jint JNICALL
 Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
         jbyteArray src, jbyteArray dst) {
-   
+
+    printf("---SSLEngine_wrapData----\n");
+
+    /** Create SSLEngine structure **/
     SSLEngineState* ssleState = (SSLEngineState*)sslep;   
    
+    /** Point to Java ByteBuffers **/
     jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
     jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
     
@@ -127,18 +132,26 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
 
     printf("src_len is %d long, dst_len is %d long\n", src_len, dst_len);
     for(int i=0; i<src_len; i++)
-        printf("contents of element %d: %d\n", i, src_ptr[i]);
+        printf("contents of element %d in source:%d\n", i, src_ptr[i]);
 
-    jint bytes_encrypted = 0;
-    int bytes_SSL_written = 0;  
+    int bytes_encrypted = 0;
+    jint bytes_SSL_written = 0;  
 
+    // what needs to be done before SSL_write?
     bytes_SSL_written = SSL_write(ssleState->sslEngine, src_ptr, src_len);
-
+    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
+    printf("bytes_encrypted = %d\n", bytes_encrypted);
+    printf("---SSLEngine_wrapData----\n");
     
-    printf("number of bytes written: %d\n", bytes_SSL_written);
+    return SSL_get_error(ssleState->sslEngine, bytes_SSL_written);
+/*
+    printf("Error code (result from SSL_write): %d\n", SSL_get_error(ssleState->sslEngine, bytes_SSL_written));
     bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
 
+    printf("---SSLEngine_wrapData----\n");
+
     return bytes_encrypted; 
+*/
 }
 
 extern "C" JNIEXPORT jint JNICALL
