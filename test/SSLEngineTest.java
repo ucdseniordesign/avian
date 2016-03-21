@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 public class SSLEngineTest {
 
     public static void main(String[] args) {
-        System.out.println("---------SSLEngine----------");
+        System.out.println("---Java----SSLEngine----------");
         // Create SSL Context using SSL version 3 
         SSLContext sslCtx = SSLContext.getInstance("SSLv3");
 
@@ -17,7 +17,7 @@ public class SSLEngineTest {
         SSLEngine clientEng = sslCtx.createSSLEngine();
         clientEng.setUseClientMode(true);
         
-        serverEng.beginHandshake();
+        clientEng.beginHandshake();
 
         String plaintxt = "Hello World";
         ByteBuffer ptBB = ByteBuffer.wrap(plaintxt.getBytes());
@@ -26,17 +26,17 @@ public class SSLEngineTest {
         byte[] ptArr = ptBB.array();
 
         /** test contents of byte array created from ByteBuffer **/
-        // for(int i=0; i<ptArr.length; i++)
-        //     System.out.println(ptArr[i]);
-        // System.out.println(ptArr.length);
+        for(int i=0; i<ptArr.length; i++)
+            System.out.println(ptArr[i]);
+        System.out.println(ptArr.length);
         
         // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
-        serverEng.wrap(ptBB, ctBB);
+        clientEng.wrap(ptBB, ctBB);
 
         byte[] ctArr = ctBB.array();
 
-        // for(int j=0; j<512; j++)
-            // System.out.println(ctBB.getLong(j));
+        for(int j=0; j<512; j++)
+            System.out.println(ctBB.getLong(j));
 
         
         ptBB.clear();
@@ -53,7 +53,7 @@ public class SSLEngineTest {
         // String ciphertxt = new String(ctArr);
         // System.out.println(ciphertxt);
         
-        System.out.println("---------SSLEngine----------");
+        System.out.println("---Java----SSLEngine----------");
         
     }
 }

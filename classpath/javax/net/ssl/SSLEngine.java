@@ -45,19 +45,20 @@ public class SSLEngine {
     }   
     
     public void wrap(ByteBuffer src, ByteBuffer dst) {
-        if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
-            beginHandshake();
-        else if(this.hsState == HandshakeStatus.NEED_WRAP) {
+        // if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
+        //     beginHandshake();
+        // else if(this.hsState == HandshakeStatus.NEED_WRAP) {
             byte[] srcArr = new byte[src.remaining()];
             byte[] dstArr = new byte[dst.remaining()];
             src.get(srcArr);
             int bytesEncrypted = wrapData(sslePtr, srcArr, dstArr); 
-            System.out.println("bytesEncrypted in wrap " + bytesEncrypted);   
+            
             dst.put(dstArr);
-        }
-        else {
-            //TODO: throw
-        }
+        // }
+        // else {
+        //     //TODO: throw
+        //     System.out.println("made it passed handshake status");
+        // }
     }
 
     public void unwrap(ByteBuffer src, ByteBuffer dst) {
