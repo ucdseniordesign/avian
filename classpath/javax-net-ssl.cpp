@@ -10,8 +10,8 @@
 
 struct SSLEngineState {
   SSL* sslEngine;
-  BIO* inputBuffer;
-  BIO* outputBuffer;
+  BIO* inputBuffer; /* rbio */
+  BIO* outputBuffer; /* wbio */
 };
 
 extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initCTX(JNIEnv*, jclass) {
@@ -100,12 +100,12 @@ extern "C" JNIEXPORT jlong JNICALL Java_javax_net_ssl_SSLContext_createEngine(JN
 
 extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLEngine_startClientHandShake(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
-    SSL_connect(ssleState->sslEngine);
+    SSL_connect(ssleState->sslEngine); /* Initiate TLS/SSL handshake with a server */
 }
 
 extern "C" JNIEXPORT void JNICALL Java_javax_net_ssl_SSLEngine_startServerHandShake(JNIEnv*, jclass, jlong sslep) {
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
-    SSL_accept(ssleState->sslEngine);
+    SSL_accept(ssleState->sslEngine); /* Wait for a TLS/SSL client to initiate the TLS/SSL handshake */
 }
 
 
@@ -140,10 +140,15 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     jint bytes_SSL_written = 0;  
 
     // what needs to be done before SSL_write?
+
     // check if ther is data on the engine first
     
     ERR_print_errors_fp(stdout);
-    printf("is there anything in the engine? <in> <out>%lu , %lu\n", BIO_ctrl_pending(ssleState->inputBuffer), BIO_ctrl_pending(ssleState->outputBuffer));
+    printf("is there anything in the engine? <in> <out> %lu , %lu\n", BIO_ctrl_pending(ssleState->inputBuffer), BIO_ctrl_pending(ssleState->outputBuffer));
+    if (BIO_ctrl_pending(ssleState->outputBuffer) > 0) {
+        return BIO_write(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
+        
+    }
     bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
     
     printf("results of BIO_read = %d\n", SSL_get_error(ssleState->sslEngine, bytes_encrypted));

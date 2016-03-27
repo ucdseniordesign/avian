@@ -44,16 +44,17 @@ public class SSLEngine {
         return hsState;
     }   
     
-    public void wrap(ByteBuffer src, ByteBuffer dst) {
+    public int wrap(ByteBuffer src, ByteBuffer dst) {
         // if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
         //     beginHandshake();
         // else if(this.hsState == HandshakeStatus.NEED_WRAP) {
             byte[] srcArr = new byte[src.remaining()];
             byte[] dstArr = new byte[dst.remaining()];
             src.get(srcArr);
-            int bytesEncrypted = wrapData(sslePtr, srcArr, dstArr); 
+            int result = wrapData(sslePtr, srcArr, dstArr); 
             
             dst.put(dstArr);
+            return result;
         // }
         // else {
         //     //TODO: throw
@@ -61,19 +62,20 @@ public class SSLEngine {
         // }
     }
 
-    public void unwrap(ByteBuffer src, ByteBuffer dst) {
-        if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
-            beginHandshake();
-        else if(this.hsState == HandshakeStatus.NEED_UNWRAP) {
+    public int unwrap(ByteBuffer src, ByteBuffer dst) {
+        // if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
+        //     beginHandshake();
+        // else if(this.hsState == HandshakeStatus.NEED_UNWRAP) {
             byte[] srcArr = new byte[src.remaining()];
             byte[] dstArr = new byte[dst.remaining()];
             src.get(srcArr);
-            int bytesDecrypted = unwrapData(sslePtr, srcArr, dstArr);
-            dst.put(dstArr);            
-        }
-        else {
-            //TODO: throw
-        }
+            int result = unwrapData(sslePtr, srcArr, dstArr);
+            dst.put(dstArr);
+            return result;
+        // }
+        // else {
+        //     //TODO: throw
+        // }
 
     }
 }

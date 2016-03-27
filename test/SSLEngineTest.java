@@ -18,39 +18,54 @@ public class SSLEngineTest {
         clientEng.setUseClientMode(true);
         
         clientEng.beginHandshake();
+        serverEng.beginHandshake();
 
-        String plaintxt = "Hello World";
-        ByteBuffer ptBB = ByteBuffer.wrap(plaintxt.getBytes());
-        ByteBuffer ctBB = ByteBuffer.allocate(1024);
+        ByteBuffer clientIn = ByteBuffer.allocate(1024);
+        ByteBuffer serverIn = ByteBuffer.allocate(1024);
 
-        byte[] ptArr = ptBB.array();
+        ByteBuffer cToS = ByteBuffer.allocate(16384);
+        ByteBuffer sToc = ByteBuffer.allocate(16384);
+
+        ByteBuffer clientOut = ByteBuffer.wrap("Hello server, I'm client".getBytes());
+        ByteBuffer serverOut = ByteBuffer.wrap("Hello client, nice to meet you".getBytes());
+
+        byte[] cOutArr = clientOut.array();
 
         /** test contents of byte array created from ByteBuffer **/
-        for(int i=0; i<ptArr.length; i++)
-            System.out.println(ptArr[i]);
-        System.out.println(ptArr.length);
+        for(int i=0; i<cOutArr.length; i++)
+            System.out.println(cOutArr[i]);
+        System.out.println(cOutArr.length);
         
         // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
-        clientEng.wrap(ptBB, ctBB);
+        
+        System.out.println("Results of wrap-client: " + clientEng.wrap(clientOut, cToS));
+        // System.out.println("Results of wrap2: " + clientEng.wrap(clientOut, cToS));
 
-        byte[] ctArr = ctBB.array();
+        // System.out.println("Results of wrap-server: " + serverEng.wrap(serverOut, sToc));
 
-        for(int j=0; j<512; j++)
-            System.out.println(ctBB.getLong(j));
+        // sToc.flip();
+        cToS.flip();
+
+        System.out.println("Results of unwrap-client: " + clientEng.unwrap(cToS, clientIn));
+
+        byte[] c_sArr = cToS.array();
+
+        // for(int j=0; j<512; j++)
+        //     System.out.println(cToS.getLong(j));
 
         
-        ptBB.clear();
-        // sslEng.unwrap(ctBB, ptBB);
+        clientOut.clear();
+        // sslEng.unwrap(cToS, clientOut);
 
         
-        //byte[] ptArr = new byte[ptBB.remaining()];
-        // ptBB.get(ptArr);
-        // String plaintxt_ = new String(ptArr);
+        //byte[] cOutArr = new byte[clientOut.remaining()];
+        // clientOut.get(cOutArr);
+        // String plaintxt_ = new String(cOutArr);
         // System.out.println(plaintxt_);
 
-        // byte[] ctArr = new byte[ctBB.remaining()];
-        // ctBB.get(ctArr);
-        // String ciphertxt = new String(ctArr);
+        // byte[] c_sArr = new byte[cToS.remaining()];
+        // cToS.get(c_sArr);
+        // String ciphertxt = new String(c_sArr);
         // System.out.println(ciphertxt);
         
         System.out.println("---Java----SSLEngine----------");
