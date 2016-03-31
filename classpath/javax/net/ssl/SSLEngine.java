@@ -45,21 +45,34 @@ public class SSLEngine {
     }   
     
     public int wrap(ByteBuffer src, ByteBuffer dst) {
-        // if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
-        //     beginHandshake();
-        // else if(this.hsState == HandshakeStatus.NEED_WRAP) {
-            byte[] srcArr = new byte[src.remaining()];
-            byte[] dstArr = new byte[dst.remaining()];
-            src.get(srcArr);
-            int result = wrapData(sslePtr, srcArr, dstArr); 
-            
-            dst.put(dstArr);
-            return result;
-        // }
-        // else {
-        //     //TODO: throw
-        //     System.out.println("made it passed handshake status");
-        // }
+        // Convert to usable data types
+        byte[] srcArr = new byte[src.remaining()];
+        byte[] dstArr = new byte[dst.remaining()];
+        src.get(srcArr);
+
+        // Send to native code
+        /* Possible results: 
+            Status:
+                BUFFER_OVERFLOW
+                BUFFER_UNDERFLOW
+                CLOSED
+                OK
+            HandshakeStatus:
+                FINISHED
+                (NEED_TASK)
+                NEED_WRAP
+                NEED_UNWRAP
+                NOT_HANDSHAKING                        */
+        int result = wrapData(sslePtr, srcArr, dstArr); 
+
+        /*            Print contents of dstArr         */    
+            // for(int i = 0; i<dstArr.length; i++) {
+            //     System.out.println(dstArr[i]);
+            // }
+        
+        dst.put(dstArr);
+        return result;
+       
     }
 
     public int unwrap(ByteBuffer src, ByteBuffer dst) {

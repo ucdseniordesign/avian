@@ -144,10 +144,14 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     // check if ther is data on the engine first
     
     ERR_print_errors_fp(stdout);
+
     printf("is there anything in the engine? <in> <out> %lu , %lu\n", BIO_ctrl_pending(ssleState->inputBuffer), BIO_ctrl_pending(ssleState->outputBuffer));
     if (BIO_ctrl_pending(ssleState->outputBuffer) > 0) {
+        // there is data in the output buffer. Write it out to destination buffer
         return BIO_write(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
-        
+        // BIO_write returns either the amount of data successfully read 
+        // or written (if the return value is positive) or that no data 
+        // was successfully read or written if the result is 0 or -1.
     }
     bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
     
@@ -175,6 +179,8 @@ extern "C" JNIEXPORT jint JNICALL
 Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
         jbyteArray src, jbyteArray dst) {
 
+    printf("---C---javax-net-ssl_unwrapData----\n");
+
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
 
     jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
@@ -184,6 +190,9 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
     jsize dst_len = env->GetArrayLength(dst);
 
     jint bytes_decrypted = 0;
+
+    printf("Is there anything in the engine? <in> <out> %lu , %lu\n", BIO_ctrl_pending(ssleState->inputBuffer), BIO_ctrl_pending(ssleState->outputBuffer));
+    
 
     bytes_decrypted = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
 

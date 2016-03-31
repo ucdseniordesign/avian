@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 public class SSLEngineTest {
 
     public static void main(String[] args) {
+
+        int one_k = 1024;
+        int sixteen_k = 16384;
         System.out.println("---Java----SSLEngine----------");
         // Create SSL Context using SSL version 3 
         SSLContext sslCtx = SSLContext.getInstance("SSLv3");
@@ -20,11 +23,11 @@ public class SSLEngineTest {
         clientEng.beginHandshake();
         serverEng.beginHandshake();
 
-        ByteBuffer clientIn = ByteBuffer.allocate(1024);
-        ByteBuffer serverIn = ByteBuffer.allocate(1024);
+        ByteBuffer clientIn = ByteBuffer.allocate(sixteen_k);
+        ByteBuffer serverIn = ByteBuffer.allocate(sixteen_k);
 
-        ByteBuffer cToS = ByteBuffer.allocate(16384);
-        ByteBuffer sToc = ByteBuffer.allocate(16384);
+        ByteBuffer cToS = ByteBuffer.allocate(sixteen_k);
+        ByteBuffer sToc = ByteBuffer.allocate(sixteen_k);
 
         ByteBuffer clientOut = ByteBuffer.wrap("Hello server, I'm client".getBytes());
         ByteBuffer serverOut = ByteBuffer.wrap("Hello client, nice to meet you".getBytes());
@@ -37,7 +40,25 @@ public class SSLEngineTest {
         System.out.println(cOutArr.length);
         
         // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
+
         
+        clientEng.wrap(ByteBuffer.allocate(0), cToS);
+        //loop. Handshake. loop until both wraps are no longer returning anything
+        cToS.flip();
+        if(cToS.hasRemaining()) {
+            serverEng.unwrap(cToS, serverIn);
+            serverIn.clear();
+            
+            serverEng.wrap(ByteBuffer.allocate(0), sToc);
+            sToc.flip();
+
+            if(sToc.hasRemaining()) {
+                clientEng.unwrap(sToc, clientIn);
+                clientIn.clear();
+            }
+            
+        }
+
         System.out.println("Results of wrap-client: " + clientEng.wrap(clientOut, cToS));
         // System.out.println("Results of wrap2: " + clientEng.wrap(clientOut, cToS));
 
@@ -50,8 +71,8 @@ public class SSLEngineTest {
 
         byte[] c_sArr = cToS.array();
 
-        // for(int j=0; j<512; j++)
-        //     System.out.println(cToS.getLong(j));
+        // for(int j=0; j<c_sArr.length; j++)
+            // System.out.println(c_sArr[j]);
 
         
         clientOut.clear();
