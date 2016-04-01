@@ -7,13 +7,17 @@ public class SSLEngineResult {
         NEED_TASK,
         NEED_UNWRAP,
         NEED_WRAP,
-        NOT_HANDSHAKING
+        NOT_HANDSHAKING;
+
+        private HandshakeStatus(){}
     }
     public static enum Status {
     	BUFFER_OVERFLOW,
     	BUFFER_UNDERFLOW,
     	CLOSED,
-    	OK
+    	OK;
+
+    	private Status(){}
     }
 
     private final int _bytesConsumed;
@@ -24,26 +28,35 @@ public class SSLEngineResult {
     public SSLEngineResult(SSLEngineResult.Status status,
     		SSLEngineResult.HandshakeStatus hsStatus,
     		int bytesConsumed, int bytesProduced) {
-    	_bytesConsumed = bytesConsumed;
-    	_bytesProduced = bytesProduced;
-    	_hsStatus = hsStatus;
-    	_status = status;
+    	if(status != null && hsStatus != null && bytesConsumed >= 0 && bytesProduced >= 0) {
+
+	    	this._bytesConsumed = bytesConsumed;
+	    	this._bytesProduced = bytesProduced;
+	    	this._hsStatus = hsStatus;
+	    	this._status = status;
+	    } else {
+	    	throw new IllegalArgumentException("Invalid argument(s)");
+	    }
     }
 
     public final int bytesConsumed() {
-    	return _bytesConsumed;
+    	return this._bytesConsumed;
     }
 
     public final int bytesProduced() {
-    	return _bytesProduced;
+    	return this._bytesProduced;
     }
 
     public final SSLEngineResult.HandshakeStatus getHandshakeStatus() {
-    	return _hsStatus;
+    	return this._hsStatus;
     }
 
     public final SSLEngineResult.Status getStatus() {
-    	return _status;
+    	return this._status;
+    }
+
+    public String toString() {
+    	return "Status = " + this._status + "\nHandshakeStatus = " + this._hsStatus + "\nbytesConsumed = " + this._bytesConsumed + "\nbytesProduced = " + this._bytesProduced;
     }
 
 }
