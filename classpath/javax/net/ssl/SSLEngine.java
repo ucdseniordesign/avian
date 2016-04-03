@@ -1,6 +1,7 @@
 package javax.net.ssl;
 
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLEngineResult.Status;
 import java.nio.ByteBuffer;
 
 public class SSLEngine {
@@ -44,7 +45,10 @@ public class SSLEngine {
         return hsState;
     }   
     
-    public int wrap(ByteBuffer src, ByteBuffer dst) {
+    public SSLEngineResult wrap(ByteBuffer src, ByteBuffer dst) {
+        if(dst.remaining() < 16921)
+            return new SSLEngineResult(Status.BUFFER_UNDERFLOW, HandshakeStatus.NEED_UNWRAP, 0, 0);
+
         // Convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
@@ -63,15 +67,19 @@ public class SSLEngine {
                 NEED_WRAP
                 NEED_UNWRAP
                 NOT_HANDSHAKING                        */
+
         int result = wrapData(sslePtr, srcArr, dstArr); 
 
+        // Contruct SSLEngineResult with results of wrapData
+
+        
         /*            Print contents of dstArr         */    
             // for(int i = 0; i<dstArr.length; i++) {
             //     System.out.println(dstArr[i]);
             // }
         
         dst.put(dstArr);
-        return result;
+        return new SSLEngineResult(Status.OK, HandshakeStatus.NEED_UNWRAP, 0, 0);
        
     }
 

@@ -7,11 +7,30 @@
 #include <stdlib.h>
 #include <openssl/err.h>
 
+#define FINISHED            1
+#define NEED_TASK           2
+#define NEED_WRAP           3
+#define NEED_UNWRAP         4
+#define NOT_HANDSHAKING     5
+#define BUFFER_OVERFLOW     6
+#define BUFFER_UNDERFLOW    7
+#define CLOSED              8
+#define OK                  9
 
 struct SSLEngineState {
   SSL* sslEngine;
   BIO* inputBuffer; /* rbio */
   BIO* outputBuffer; /* wbio */
+};
+
+struct SSLEngineResult {
+    int result[4];
+    const int status = 0;
+    const int hsStatus = 1;
+    const int bytesProduced = 2;
+    const int bytesConsumed = 3;
+
+
 };
 
 extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initCTX(JNIEnv*, jclass) {

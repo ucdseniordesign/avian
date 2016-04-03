@@ -1,7 +1,8 @@
 package javax.net.ssl;
 
 public class SSLEngineResult {
-
+	// private static native void constructSSLEngineResult(long res_ptr);
+	
     public static enum HandshakeStatus {
         FINISHED,
         NEED_TASK,
