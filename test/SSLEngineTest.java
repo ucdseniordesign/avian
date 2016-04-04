@@ -41,7 +41,7 @@ public class SSLEngineTest {
         
         // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
 
-        
+        /*
         clientEng.wrap(ByteBuffer.allocate(0), cToS);
         //loop. Handshake. loop until both wraps are no longer returning anything
         cToS.flip();
@@ -58,7 +58,7 @@ public class SSLEngineTest {
             }
             
         }
-
+        */
         System.out.println("Results of wrap-client: " + clientEng.wrap(clientOut, cToS));
         // System.out.println("Results of wrap2: " + clientEng.wrap(clientOut, cToS));
 
@@ -67,9 +67,9 @@ public class SSLEngineTest {
         // sToc.flip();
         cToS.flip();
 
-        System.out.println("Results of unwrap-client: " + clientEng.unwrap(cToS, clientIn));
+        // System.out.println("Results of unwrap-client: " + clientEng.unwrap(cToS, clientIn));
 
-        byte[] c_sArr = cToS.array();
+        // byte[] c_sArr = cToS.array();
 
         // for(int j=0; j<c_sArr.length; j++)
             // System.out.println(c_sArr[j]);

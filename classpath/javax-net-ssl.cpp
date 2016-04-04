@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <openssl/err.h>
 
+// SSLEngineResult values
 #define FINISHED            1
 #define NEED_TASK           2
 #define NEED_WRAP           3
@@ -17,21 +18,19 @@
 #define CLOSED              8
 #define OK                  9
 
+// Keys for SSLEngineResult array
+#define _status_            0
+#define _hsStatus_          1
+#define _bytesConsumed_     2
+#define _bytesProduced_     3
+
+
 struct SSLEngineState {
   SSL* sslEngine;
   BIO* inputBuffer; /* rbio */
   BIO* outputBuffer; /* wbio */
 };
 
-struct SSLEngineResult {
-    int result[4];
-    const int status = 0;
-    const int hsStatus = 1;
-    const int bytesProduced = 2;
-    const int bytesConsumed = 3;
-
-
-};
 
 extern "C" JNIEXPORT void Java_javax_net_ssl_SSLContext_initCTX(JNIEnv*, jclass) {
     SSL_load_error_strings();
@@ -133,9 +132,9 @@ extern "C" JNIEXPORT int JNICALL Java_javax_net_ssl_SSLEngine_getHandshakeStatus
     return 1;
 }
 
-extern "C" JNIEXPORT jint JNICALL
+extern "C" JNIEXPORT jintArray JNICALL
 Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
-        jbyteArray src, jbyteArray dst) {
+        jbyteArray /*src*/, jbyteArray dst) {
 
     printf("---C---javax-net-ssl_wrapData----\n");
 
@@ -143,47 +142,47 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     SSLEngineState* ssleState = (SSLEngineState*)sslep;   
    
     /** Point to Java ByteBuffers **/
-    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    // jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
     jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
     
-    jsize src_len = env->GetArrayLength(src);
-    jsize dst_len = env->GetArrayLength(dst);
+    // jsize src_len = env->GetArrayLength(src);
+    // jsize dst_len = env->GetArrayLength(dst);
 
-    // jint read_result = BIO_read()
-    /* Test src_ptr ********************************/
-    // printf("src_len is %d long, dst_len is %d long\n", src_len, dst_len);
-    // for(int i=0; i<src_len; i++)
-    //     printf("contents of element %d in source:%d\n", i, src_ptr[i]);
-
-    int bytes_encrypted = 0;
-    jint bytes_SSL_written = 0;  
-
-    // what needs to be done before SSL_write?
-
-    // check if ther is data on the engine first
+    jintArray engine_result = env->NewIntArray(4);  
     
-    ERR_print_errors_fp(stdout);
+    jint *e_res_ptr = env->GetIntArrayElements(engine_result, NULL);
 
-    printf("is there anything in the engine? <in> <out> %lu , %lu\n", BIO_ctrl_pending(ssleState->inputBuffer), BIO_ctrl_pending(ssleState->outputBuffer));
-    if (BIO_ctrl_pending(ssleState->outputBuffer) > 0) {
-        // there is data in the output buffer. Write it out to destination buffer
-        return BIO_write(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
+    jint write_result = 0;
+    // jint error_result = 0;
+            
+    if (BIO_ctrl_pending(ssleState->outputBuffer) > 0) { // Check for data in the engine
+        
+        write_result = BIO_write(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
+        /*error_result =*/ SSL_get_error(ssleState->sslEngine, write_result);
         // BIO_write returns either the amount of data successfully read 
         // or written (if the return value is positive) or that no data 
         // was successfully read or written if the result is 0 or -1.
+
+        // return write_result;
+        e_res_ptr[_bytesProduced_] = write_result;
+
+        env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
+        return engine_result;
     }
-    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
+
+    e_res_ptr[_status_] = BUFFER_UNDERFLOW;
+    e_res_ptr[_hsStatus_] = NEED_UNWRAP;
+    e_res_ptr[_bytesConsumed_] = 42;
+    e_res_ptr[_bytesProduced_] = 17;
+    env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
+    return engine_result;    
+
+    // ERR_print_errors_fp(stdout);
     
-    printf("results of BIO_read = %d\n", SSL_get_error(ssleState->sslEngine, bytes_encrypted));
-
-    bytes_SSL_written = SSL_write(ssleState->sslEngine, src_ptr, src_len);
-
-    printf("results of SSL_write = %d\n", SSL_get_error(ssleState->sslEngine, bytes_SSL_written));
-    ERR_print_errors_fp(stdout);
-
+    
 
     printf("---C---javax-net-ssl_wrapData----\n");
-    return SSL_get_error(ssleState->sslEngine, bytes_SSL_written);
+    
 /*
     printf("Error code (result from SSL_write): %d\n", SSL_get_error(ssleState->sslEngine, bytes_SSL_written));
     bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);

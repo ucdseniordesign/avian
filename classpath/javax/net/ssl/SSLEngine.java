@@ -7,10 +7,11 @@ import java.nio.ByteBuffer;
 public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
-    private native int wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int[] wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
     private native int unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
 
     private final long sslePtr;
+    private volatile long ssleResPtr;
     private volatile boolean clientMode = false;
     private volatile boolean handShakeStarted = false;
     private volatile HandshakeStatus hsState = HandshakeStatus.NOT_HANDSHAKING;
@@ -46,7 +47,8 @@ public class SSLEngine {
     }   
     
     public SSLEngineResult wrap(ByteBuffer src, ByteBuffer dst) {
-        if(dst.remaining() < 16921)
+        // Check that destination is large enough
+        if(dst.remaining() < 16384)
             return new SSLEngineResult(Status.BUFFER_UNDERFLOW, HandshakeStatus.NEED_UNWRAP, 0, 0);
 
         // Convert to usable data types
@@ -55,31 +57,15 @@ public class SSLEngine {
         src.get(srcArr);
 
         // Send to native code
-        /* Possible results: 
-            Status:
-                BUFFER_OVERFLOW
-                BUFFER_UNDERFLOW
-                CLOSED
-                OK
-            HandshakeStatus:
-                FINISHED
-                (NEED_TASK)
-                NEED_WRAP
-                NEED_UNWRAP
-                NOT_HANDSHAKING                        */
-
-        int result = wrapData(sslePtr, srcArr, dstArr); 
-
-        // Contruct SSLEngineResult with results of wrapData
+        int[] result = wrapData(sslePtr, srcArr, dstArr);
+        for(int i=0; i<4; i++) 
+            System.out.println("wrapData result[" + i + "] = " + (int)result[i]);
+        // Contruct SSLEngineResult based on results of wrapData
 
         
-        /*            Print contents of dstArr         */    
-            // for(int i = 0; i<dstArr.length; i++) {
-            //     System.out.println(dstArr[i]);
-            // }
-        
+        // Place wrapped data into destination buffer        
         dst.put(dstArr);
-        return new SSLEngineResult(Status.OK, HandshakeStatus.NEED_UNWRAP, 0, 0);
+        return new SSLEngineResult(result);
        
     }
 
