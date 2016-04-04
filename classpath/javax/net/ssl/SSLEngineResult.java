@@ -2,7 +2,7 @@ package javax.net.ssl;
 
 public class SSLEngineResult {
 	// private static native void constructSSLEngineResult(long res_ptr);
-	
+
     public static enum HandshakeStatus {
         FINISHED,
         NEED_TASK,
@@ -33,6 +33,50 @@ public class SSLEngineResult {
 
 	    	this._bytesConsumed = bytesConsumed;
 	    	this._bytesProduced = bytesProduced;
+	    	this._hsStatus = hsStatus;
+	    	this._status = status;
+	    } else {
+	    	throw new IllegalArgumentException("Invalid argument(s)");
+	    }
+    }
+
+    public SSLEngineResult(int[] args) {
+    	SSLEngineResult.Status status;
+    	SSLEngineResult.HandshakeStatus hsStatus;
+    	int bytesConsumed, bytesProduced;
+
+    	switch (args[0]) {
+    		case 6: status = Status.BUFFER_OVERFLOW;
+    			break; 
+    		case 7: status = Status.BUFFER_UNDERFLOW;
+    			break;
+    		case 8: status = Status.CLOSED;
+    			break;
+    		case 9: status = Status.OK;
+    			break;
+    		default: status = null;
+    			break;
+    	}
+
+    	switch (args[1]) {
+    		case 1: hsStatus = HandshakeStatus.FINISHED;
+    			break;
+    		case 2:	hsStatus = HandshakeStatus.NEED_TASK;
+    			break;
+    		case 3: hsStatus = HandshakeStatus.NEED_WRAP;
+    			break;
+    		case 4: hsStatus = HandshakeStatus.NEED_UNWRAP;
+    			break;
+    		case 5: hsStatus = HandshakeStatus.NOT_HANDSHAKING;
+    			break;
+    		default: hsStatus = null;
+    			break;
+    	}
+
+    	if(status != null && hsStatus != null && args[2] >= 0 && args[3] >= 0) {
+
+	    	this._bytesConsumed = args[2];
+	    	this._bytesProduced = args[3];
 	    	this._hsStatus = hsStatus;
 	    	this._status = status;
 	    } else {
