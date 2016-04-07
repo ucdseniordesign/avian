@@ -8,7 +8,7 @@ public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
     private native int[] wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
-    private native int unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int[] unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
 
     private final long sslePtr;
     private volatile long ssleResPtr;
@@ -57,32 +57,31 @@ public class SSLEngine {
         src.get(srcArr);
 
         // Send to native code
-        int[] result = wrapData(sslePtr, srcArr, dstArr);
-        for(int i=0; i<4; i++) 
-            System.out.println("wrapData result[" + i + "] = " + (int)result[i]);
-        // Contruct SSLEngineResult based on results of wrapData
-
+        int[] result = wrapData(sslePtr, srcArr, dstArr);        
         
         // Place wrapped data into destination buffer        
         dst.put(dstArr);
+
+        // Contruct and return SSLEngineResult based on results of wrapData
         return new SSLEngineResult(result);
        
     }
 
-    public int unwrap(ByteBuffer src, ByteBuffer dst) {
-        // if(this.hsState == HandshakeStatus.NOT_HANDSHAKING)
-        //     beginHandshake();
-        // else if(this.hsState == HandshakeStatus.NEED_UNWRAP) {
-            byte[] srcArr = new byte[src.remaining()];
-            byte[] dstArr = new byte[dst.remaining()];
-            src.get(srcArr);
-            int result = unwrapData(sslePtr, srcArr, dstArr);
-            dst.put(dstArr);
-            return result;
-        // }
-        // else {
-        //     //TODO: throw
-        // }
+    public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer dst) {
+        // convert to usable data types
+        byte[] srcArr = new byte[src.remaining()];
+        byte[] dstArr = new byte[dst.remaining()];
+        src.get(srcArr);
+
+        // Send to native code
+        int[] result = unwrapData(sslePtr, srcArr, dstArr);
+
+        // Place unwrapped data into destination buffer
+        dst.put(dstArr);
+
+        // Construct and return SSLEngineResult based on results of unwrapData
+        return new SSLEngineResult(result);
+        
 
     }
 }

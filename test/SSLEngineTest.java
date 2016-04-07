@@ -1,5 +1,6 @@
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import java.nio.ByteBuffer;
 
 public class SSLEngineTest {
@@ -32,14 +33,15 @@ public class SSLEngineTest {
         ByteBuffer clientOut = ByteBuffer.wrap("Hello server, I'm client".getBytes());
         ByteBuffer serverOut = ByteBuffer.wrap("Hello client, nice to meet you".getBytes());
 
+        SSLEngineResult clientResult;
+        SSLEngineResult serverResult;
+
         byte[] cOutArr = clientOut.array();
 
-        /** test contents of byte array created from ByteBuffer **/
-        for(int i=0; i<cOutArr.length; i++)
-            System.out.println(cOutArr[i]);
-        System.out.println(cOutArr.length);
-        
-        // encrypt plain text byte buffer, encrypted ciphertxt buffer is the result
+        clientResult = clientEng.wrap(clientOut, cToS);
+        serverResult = serverEng.wrap(serverOut, sToc);     
+
+        System.out.println("clientResult:\n" + clientResult);   
 
         /*
         clientEng.wrap(ByteBuffer.allocate(0), cToS);
@@ -58,22 +60,10 @@ public class SSLEngineTest {
             }
             
         }
-        */
-        System.out.println("Results of wrap-client: " + clientEng.wrap(clientOut, cToS));
-        // System.out.println("Results of wrap2: " + clientEng.wrap(clientOut, cToS));
-
-        // System.out.println("Results of wrap-server: " + serverEng.wrap(serverOut, sToc));
+        */       
 
         // sToc.flip();
         cToS.flip();
-
-        // System.out.println("Results of unwrap-client: " + clientEng.unwrap(cToS, clientIn));
-
-        // byte[] c_sArr = cToS.array();
-
-        // for(int j=0; j<c_sArr.length; j++)
-            // System.out.println(c_sArr[j]);
-
         
         clientOut.clear();
         // sslEng.unwrap(cToS, clientOut);
