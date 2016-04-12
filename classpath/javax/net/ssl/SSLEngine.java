@@ -48,8 +48,16 @@ public class SSLEngine {
     
     public SSLEngineResult wrap(ByteBuffer src, ByteBuffer dst) {
         // Check that destination is large enough
-        if(dst.remaining() < 16384)
-            return new SSLEngineResult(Status.BUFFER_UNDERFLOW, HandshakeStatus.NEED_UNWRAP, 0, 0);
+        if(dst.remaining() < 16384) {
+            return new SSLEngineResult(Status.BUFFER_UNDERFLOW, this.getHandshakeStatus(), 0, 0);
+        }
+
+        // else if  "outbound done"
+        //      return CLOSED, getHsStatus, 0, 0
+        
+        else if(this.getHandshakeStatus() == HandshakeStatus.NEED_UNWRAP) {
+            return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
+        }
 
         // Convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
@@ -57,31 +65,40 @@ public class SSLEngine {
         src.get(srcArr);
 
         // Send to native code
-        int[] result = wrapData(sslePtr, srcArr, dstArr);        
+        int[] native_result = wrapData(sslePtr, srcArr, dstArr);        
         
         // Place wrapped data into destination buffer        
         dst.put(dstArr);
 
         // Contruct and return SSLEngineResult based on results of wrapData
-        return new SSLEngineResult(result);
+        SSLEngineResult result = new SSLEngineResult(native_result);
+        hsState = result.getHandshakeStatus();
+        return result;
        
     }
 
     public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer dst) {
+        // if "inbound done"
+        //      return CLOSED, getHsStatus, 0, 0
+
+        if(this.getHandshakeStatus() == HandshakeStatus.NEED_WRAP) {
+            return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
+        }
+
         // convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
         src.get(srcArr);
 
         // Send to native code
-        int[] result = unwrapData(sslePtr, srcArr, dstArr);
+        int[] native_result = unwrapData(sslePtr, srcArr, dstArr);
 
         // Place unwrapped data into destination buffer
         dst.put(dstArr);
 
         // Construct and return SSLEngineResult based on results of unwrapData
-        return new SSLEngineResult(result);
-        
-
+        SSLEngineResult result = new SSLEngineResult(native_result);
+        hsState = result.getHandshakeStatus();
+        return result;
     }
 }

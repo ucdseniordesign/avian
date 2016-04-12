@@ -139,6 +139,13 @@ extern "C" JNIEXPORT jintArray JNICALL
 Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
         jbyteArray src, jbyteArray dst) {
 
+    /**
+    *
+        SSL_write(ssl, appBuff, len)
+        BIO_read(ssl->out, netBuff, len)
+    *
+    **/
+
     printf("---C---javax-net-ssl_wrapData----\n");
 
     /** Create SSLEngine structure **/
@@ -162,6 +169,7 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     /* Attempt to encrypt */
     write_result = SSL_write(ssleState->sslEngine, src_ptr, src_len);
 
+    /* Check error */
     if(write_result <= 0){
         error_result = SSL_get_error(ssleState->sslEngine, write_result);
         switch (error_result) {
@@ -172,69 +180,93 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
                 e_res_ptr[_hsStatus_] = NEED_WRAP;
                 break;
             default:
-
+                // TODO: throw
                 break;
         }
-
-        if(BIO_ctrl_pending(ssleState->outputBuffer) > 0) { // Check for data in the engine)
-            printf("hello\n");
+        /* Check for data in the engine */
+        if(BIO_ctrl_pending(ssleState->outputBuffer) > 0) { 
             read_result = BIO_read(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
             e_res_ptr[_bytesProduced_] = read_result;
         }
         e_res_ptr[_status_] = OK;      
         e_res_ptr[_bytesConsumed_] = 0;
 
+        env->ReleaseByteArrayElements(dst, dst_ptr, 0);
         env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
         return engine_result;
+    }else {
+        read_result = BIO_read(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
+        e_res_ptr[_bytesProduced_] = read_result;
+        e_res_ptr[_bytesConsumed_] = write_result;
+        e_res_ptr[_status_] = OK;
+        e_res_ptr[_hsStatus_] = NOT_HANDSHAKING;
+        env->ReleaseByteArrayElements(dst, dst_ptr, 0);
+        env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
+        return engine_result;    
     }
-            
-    e_res_ptr[_status_] = BUFFER_UNDERFLOW;
-    e_res_ptr[_hsStatus_] = NEED_UNWRAP;
-    e_res_ptr[_bytesConsumed_] = 42;
-    e_res_ptr[_bytesProduced_] = 42;
-    env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
-    return engine_result;    
+    
 
     // ERR_print_errors_fp(stdout);    
 
     printf("---C---javax-net-ssl_wrapData----\n");
-    
-/*
-    printf("Error code (result from SSL_write): %d\n", SSL_get_error(ssleState->sslEngine, bytes_SSL_written));
-    bytes_encrypted = BIO_read(ssleState->outputBuffer, dst_ptr, dst_len);
-
-    printf("---SSLEngine_wrapData----\n");
-
-    return bytes_encrypted; 
-*/
 }
 
 extern "C" JNIEXPORT jintArray JNICALL
-Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong /*sslep*/,
-        jbyteArray /*src*/, jbyteArray /*dst*/) {
+Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src, jbyteArray dst) {
+    /**
+    *
+        BIO_write(ssl->in, netBuff, len)
+        SSL_read(ssl, appBuff, len)
+    *
+    **/
 
     printf("---C---javax-net-ssl_unwrapData----\n");
     /** Create SSLEngine pointer **/
-    // SSLEngineState* ssleState = (SSLEngineState*)sslep;
+    SSLEngineState* ssleState = (SSLEngineState*)sslep;
 
     /** Point to Java ByteBuffers **/
-    // jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
-    // jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
 
-    // jsize src_len = env->GetArrayLength(src);
+    jsize src_len = env->GetArrayLength(src);
     // jsize dst_len = env->GetArrayLength(dst);
 
     jintArray engine_result = env->NewIntArray(4);
 
     jint *e_res_ptr = env->GetIntArrayElements(engine_result, NULL);
 
-    // jint read_result = 0;
-
-    /** Check for data on engine **/
-    /** Write to engine **/
+    jint write_result = 0;
+    jint read_result = 0;
+    // jint error_result = 0;
+    
+    /* Load net data into engine */
+    write_result = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
+    if(write_result <= 0) {
+        if(BIO_ctrl_pending(ssleState->inputBuffer) > 0) {
+            read_result = BIO_read(ssleState->inputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->inputBuffer));
+            e_res_ptr[_status_] = OK;
+            e_res_ptr[_hsStatus_] = NEED_WRAP;
+            e_res_ptr[_bytesConsumed_] = 0;
+            e_res_ptr[_bytesProduced_] = read_result;
+            env->ReleaseIntArrayElements(engine_result,e_res_ptr, 0);
+            return engine_result;
+        }
+    }
     /** Decrypt **/
+    // read_result = SSL_read(ssleState->sslEngine, src_ptr, src_len);
+    /** Check for data on engine **/
+
+    for(int i=0; i<4; i++) {
+        printf("%d\n", e_res_ptr[i]);
+    }
     /** Extract from engine **/
 
+
+    e_res_ptr[_status_] = CLOSED;
+    e_res_ptr[_hsStatus_] = FINISHED;
+    e_res_ptr[_bytesConsumed_] = 0;
+    e_res_ptr[_bytesProduced_] = read_result;
     /** Return result **/
     env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
     return engine_result;     
