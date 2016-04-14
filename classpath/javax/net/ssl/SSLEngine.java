@@ -8,7 +8,7 @@ public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
     private native int[] wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
-    private native int[] unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int[] unwrapData(long sslep, byte[] srcbuf, int srclen, byte[] dstbuf);
 
     private final long sslePtr;
     private volatile long ssleResPtr;
@@ -59,6 +59,17 @@ public class SSLEngine {
             return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
         }
 
+        //Watch buffers
+        System.out.println("wrap: current position of src = " + src.position());
+        System.out.println("wrap: current limit of src = " + src.limit());
+        System.out.println("wrap: current remaining of src = " + src.remaining());
+        System.out.println("wrap: current capacity of src = " + src.capacity() + '\n');
+        
+        System.out.println("wrap: current position of dst = " + dst.position());
+        System.out.println("wrap: current limit of dst = " + dst.limit());
+        System.out.println("wrap: current remaining of dst = " + dst.remaining());
+        System.out.println("wrap: current capacity of dst = " + dst.capacity() + '\n');
+
         // Convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
@@ -69,6 +80,17 @@ public class SSLEngine {
         
         // Place wrapped data into destination buffer        
         dst.put(dstArr);
+
+        //Watch buffers
+        System.out.println("wrap: current position of src = " + src.position());
+        System.out.println("wrap: current limit of src = " + src.limit());
+        System.out.println("wrap: current remaining of src = " + src.remaining());
+        System.out.println("wrap: current capacity of src = " + src.capacity() + '\n');
+        
+        System.out.println("wrap: current position of dst = " + dst.position());
+        System.out.println("wrap: current limit of dst = " + dst.limit());
+        System.out.println("wrap: current remaining of dst = " + dst.remaining());
+        System.out.println("wrap: current capacity of dst = " + dst.capacity() + '\n');
 
         // Contruct and return SSLEngineResult based on results of wrapData
         SSLEngineResult result = new SSLEngineResult(native_result);
@@ -85,13 +107,23 @@ public class SSLEngine {
             return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
         }
 
+        // Watch buffers
+        System.out.println("unwrap: current position of src = " + src.position());
+        System.out.println("unwrap: current limit of src = " + src.limit());
+        System.out.println("unwrap: current capacity of src = " + src.capacity() + '\n');
+        
+        System.out.println("unwrap: current position of dst = " + dst.position());
+        System.out.println("unwrap: current limit of dst = " + dst.limit());
+        System.out.println("unwrap: current capacity of dst = " + dst.capacity() + '\n');
+        
         // convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
         src.get(srcArr);
-
+        int srcLen = srcArr.length;
+        // System.out.println("unwrap: length of srcArr = " + srcLen);
         // Send to native code
-        int[] native_result = unwrapData(sslePtr, srcArr, dstArr);
+        int[] native_result = unwrapData(sslePtr, srcArr, srcLen, dstArr);
 
         // Place unwrapped data into destination buffer
         dst.put(dstArr);
