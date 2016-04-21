@@ -166,9 +166,6 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
     int read_result = 0;
     int error_result = 0;
 
-    printf("%s\n", (char*)src_ptr);
-    
-
     /* Attempt to encrypt */
     write_result = SSL_write(ssleState->sslEngine, src_ptr, src_len);
 
@@ -217,7 +214,7 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
 
 extern "C" JNIEXPORT jintArray JNICALL
 Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
-        jbyteArray src1, jbyteArray dst) {
+        jbyteArray src, jbyteArray dst) {
     /**
     *
         BIO_write(ssl->in, netBuff, len)
@@ -230,19 +227,19 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
     printf("---C---javax-net-ssl_unwrapData----\n");
     
     /** Point to Java ByteBuffers **/
-    jbyte* src_ptr = env->GetByteArrayElements(src1, NULL); // TODO: src_ptr is crashing
+    jbyte* src_ptr = env->GetByteArrayElements(src, NULL); // TODO: src_ptr is crashing
     jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
     
-    jsize src_len = env->GetArrayLength(src1);
+    jsize src_len = env->GetArrayLength(src);
     // jsize dst_len = env->GetArrayLength(dst);
     
     /** Create array to construct SSLEngineResult **/
     jintArray engine_result = env->NewIntArray(4);
     jint *e_res_ptr = env->GetIntArrayElements(engine_result, NULL);
 
-    int write_result = 0;
-    int read_result = 0;
-    int error_result = 0;
+    jint write_result = 0;
+    jint read_result = 0;
+    jint error_result = 0;
         
     /* Load net data into engine */
     write_result = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
@@ -266,7 +263,7 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
         read_result = SSL_read(ssleState->sslEngine, dst_ptr, BIO_ctrl_pending(ssleState->inputBuffer));
 
         printf("BIO_ctrl_pending(ssleState->inputBuffer) = %lu\n", BIO_ctrl_pending(ssleState->inputBuffer));
-        printf("read_result = %u\n", read_result);
+        printf("read_result = %d\n", read_result);
 
         if(read_result <= 0) {
             error_result = SSL_get_error(ssleState->sslEngine, read_result);
@@ -281,10 +278,15 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
                     // TODO: throw
                     break;                
             }
+            e_res_ptr[_status_] = OK;        
+            e_res_ptr[_bytesConsumed_] = 0;
+            e_res_ptr[_bytesProduced_] = 0;
+            env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
+            return engine_result;
         }
         
         e_res_ptr[_status_] = OK;
-        e_res_ptr[_hsStatus_] = NOT_HANDSHAKING;
+        e_res_ptr[_hsStatus_] = NEED_UNWRAP;
         e_res_ptr[_bytesConsumed_] = 0;
         e_res_ptr[_bytesProduced_] = 0;
         env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);

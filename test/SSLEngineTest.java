@@ -55,8 +55,8 @@ public class SSLEngineTest {
 
         serverResult = serverEng.unwrap(cToS, serverIn);        
         System.out.println("serverResult:\n" + serverResult + '\n');
-        System.out.println(cToS);
-        System.out.println(serverIn);
+        System.out.println("net buffer after unwrap" + cToS);
+        System.out.println("server app buffer after unwrap" + serverIn);
 
 
 
