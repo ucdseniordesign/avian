@@ -45,8 +45,7 @@ public class SSLEngineTest {
         
         
         cToS.flip();
-        System.out.println(cToS);
-        System.out.println(clientOut);
+        
 
         // cToS.compact();
         // sToc.flip();

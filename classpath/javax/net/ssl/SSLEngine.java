@@ -92,14 +92,14 @@ public class SSLEngine {
         // convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
+        
         src.slice().get(srcArr);
         int srcLen = srcArr.length;
-        System.out.println("unwrap: length of srcArr = " + srcLen);
+        // System.out.println("unwrap: length of srcArr = " + srcLen);
+
         // Send to native code
         int[] native_result = unwrapData(sslePtr, srcArr, dstArr);
-        for(int i:native_result) {
-            System.out.println(i);
-        }
+
         // Place unwrapped data into destination buffer
         dst.put(dstArr, 0, native_result[3]);
         src.position(src.position() + native_result[2]);
