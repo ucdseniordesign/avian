@@ -264,7 +264,7 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
 
         printf("BIO_ctrl_pending(ssleState->inputBuffer) = %lu\n", BIO_ctrl_pending(ssleState->inputBuffer));
         printf("read_result = %d\n", read_result);
-
+        printf("outputBuffer: %lu\n", BIO_ctrl_pending(ssleState->outputBuffer));
         if(read_result <= 0) {
             error_result = SSL_get_error(ssleState->sslEngine, read_result);
             switch(error_result) {
@@ -278,9 +278,10 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
                     // TODO: throw
                     break;                
             }
+            read_result = BIO_read(ssleState->outputBuffer, dst_ptr, BIO_ctrl_pending(ssleState->outputBuffer));
             e_res_ptr[_status_] = OK;        
             e_res_ptr[_bytesConsumed_] = 0;
-            e_res_ptr[_bytesProduced_] = 0;
+            e_res_ptr[_bytesProduced_] = read_result;
             env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
             return engine_result;
         }
