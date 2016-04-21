@@ -34,9 +34,8 @@ public class SSLEngineTest {
         ByteBuffer serverOut = ByteBuffer.wrap("Hello client, nice to meet you".getBytes());
 
         SSLEngineResult clientResult;
-        SSLEngineResult serverResult;
+        SSLEngineResult serverResult;        
 
-        // byte[] cOutArr = clientOut.array();
 
         clientResult = clientEng.wrap(clientOut, cToS);
         System.out.println("clientResult:\n" + clientResult + '\n');
@@ -44,7 +43,11 @@ public class SSLEngineTest {
         // serverResult = serverEng.wrap(serverOut, sToc);        
         // System.out.println("serverResult:\n" + serverResult + '\n');
         
+        
         cToS.flip();
+        System.out.println(cToS);
+        System.out.println(clientOut);
+
         // cToS.compact();
         // sToc.flip();
 
@@ -53,6 +56,8 @@ public class SSLEngineTest {
 
         serverResult = serverEng.unwrap(cToS, serverIn);        
         System.out.println("serverResult:\n" + serverResult + '\n');
+        System.out.println(cToS);
+        System.out.println(serverIn);
 
 
 
@@ -76,9 +81,9 @@ public class SSLEngineTest {
         */       
 
         // sToc.flip();
-        cToS.flip();
+        // cToS.flip();
         
-        clientOut.clear();
+        // clientOut.clear();
         // sslEng.unwrap(cToS, clientOut);
 
         

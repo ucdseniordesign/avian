@@ -216,8 +216,8 @@ Java_javax_net_ssl_SSLEngine_wrapData(JNIEnv* env, jclass, jlong sslep,
 }
 
 extern "C" JNIEXPORT jintArray JNICALL
-Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jlong sslep,
-        jbyteArray src, jint src_len, jbyteArray dst) {
+Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
+        jbyteArray src1, jbyteArray dst) {
     /**
     *
         BIO_write(ssl->in, netBuff, len)
@@ -226,16 +226,24 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jlong sslep,
     **/
 
     printf("---C---javax-net-ssl_unwrapData----\n");
+    printf("one\n");
+    /** Point to Java ByteBuffers **/
+    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
+    printf("two\n");
+    jbyte* src_ptr = env->GetByteArrayElements(src1, NULL); // TODO: src_ptr is crashing
+    
+    
+    printf("three\n");
+
+    jsize src_len = env->GetArrayLength(src1);
+    printf("four\n");
+    // jsize dst_len = env->GetArrayLength(dst);
+
     /** Create SSLEngine pointer **/
     SSLEngineState* ssleState = (SSLEngineState*)sslep;
 
-    /** Point to Java ByteBuffers **/
-    
-    jbyte* src_ptr = env->GetByteArrayElements(src, NULL);
-    jbyte* dst_ptr = env->GetByteArrayElements(dst, NULL);
 
-    // jsize src_len = env->GetArrayLength(src);
-    // jsize dst_len = env->GetArrayLength(dst);
+    
     
     jintArray engine_result = env->NewIntArray(4);
 
@@ -245,7 +253,7 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jlong sslep,
     jint read_result = 0;
     jint error_result = 0;
 
-    printf("%s\n", (char*)src_ptr);
+    // printf("%s\n", (char*)src_ptr);
     
     /* Load net data into engine */
     write_result = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
