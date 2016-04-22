@@ -4,6 +4,7 @@ public class SSLEngineResult {
 	// private static native void constructSSLEngineResult(long res_ptr);
 
     public static enum HandshakeStatus {
+        TEST,
         FINISHED,
         NEED_TASK,
         NEED_UNWRAP,
@@ -13,6 +14,7 @@ public class SSLEngineResult {
         private HandshakeStatus(){}
     }
     public static enum Status {
+        TEST,
     	BUFFER_OVERFLOW,
     	BUFFER_UNDERFLOW,
     	CLOSED,
@@ -46,6 +48,8 @@ public class SSLEngineResult {
     	int bytesConsumed, bytesProduced;
 
     	switch (args[0]) {
+            case 0: status = Status.TEST;
+                break;
     		case 6: status = Status.BUFFER_OVERFLOW;
     			break; 
     		case 7: status = Status.BUFFER_UNDERFLOW;
@@ -59,6 +63,8 @@ public class SSLEngineResult {
     	}
 
     	switch (args[1]) {
+            case 0: hsStatus = HandshakeStatus.TEST;
+                break;
     		case 1: hsStatus = HandshakeStatus.FINISHED;
     			break;
     		case 2:	hsStatus = HandshakeStatus.NEED_TASK;

@@ -8,6 +8,7 @@
 #include <openssl/err.h>
 
 // SSLEngineResult values
+#define TEST                0
 #define FINISHED            1
 #define NEED_TASK           2
 #define NEED_WRAP           3
@@ -243,10 +244,7 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
         
     /* Load net data into engine */
     write_result = BIO_write(ssleState->inputBuffer, src_ptr, src_len);
-    printf("src_len = %u\n", src_len);
-    printf("write_result = %u\n", write_result);
-    printf("inputBuffer: %lu\n", BIO_ctrl_pending(ssleState->inputBuffer));
-    printf("outputBuffer: %lu\n", BIO_ctrl_pending(ssleState->outputBuffer));
+    
 
     if(write_result <= 0) {
         if(BIO_ctrl_pending(ssleState->inputBuffer) > 0) {
@@ -259,12 +257,8 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
             return engine_result;
         }
     }else {
-        printf("read result block\n");
         read_result = SSL_read(ssleState->sslEngine, dst_ptr, BIO_ctrl_pending(ssleState->inputBuffer));
-
-        printf("BIO_ctrl_pending(ssleState->inputBuffer) = %lu\n", BIO_ctrl_pending(ssleState->inputBuffer));
-        printf("read_result = %d\n", read_result);
-        printf("outputBuffer: %lu\n", BIO_ctrl_pending(ssleState->outputBuffer));
+        
         if(read_result <= 0) {
             error_result = SSL_get_error(ssleState->sslEngine, read_result);
             switch(error_result) {
@@ -287,9 +281,9 @@ Java_javax_net_ssl_SSLEngine_unwrapData(JNIEnv* env, jclass, jlong sslep,
         }
         
         e_res_ptr[_status_] = OK;
-        e_res_ptr[_hsStatus_] = NEED_UNWRAP;
+        e_res_ptr[_hsStatus_] = NOT_HANDSHAKING;
         e_res_ptr[_bytesConsumed_] = 0;
-        e_res_ptr[_bytesProduced_] = 0;
+        e_res_ptr[_bytesProduced_] = read_result;
         env->ReleaseIntArrayElements(engine_result, e_res_ptr, 0);
         return engine_result;     
     }
