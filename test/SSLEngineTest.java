@@ -38,27 +38,68 @@ public class SSLEngineTest {
 
 
         clientResult = clientEng.wrap(clientOut, cToS);
-        System.out.println("clientResult:\n" + clientResult + '\n');
-
-        // serverResult = serverEng.wrap(serverOut, sToc);        
-        // System.out.println("serverResult:\n" + serverResult + '\n');
+        System.out.println("clientResult, wrap:\n" + clientResult + '\n');
         
-        
-        cToS.flip();
-        
-
-        // cToS.compact();
-        // sToc.flip();
-
-        // clientResult = clientEng.unwrap(sToc, clientIn);
-        // System.out.println("clientResult:\n" + clientResult + '\n');
+        cToS.flip();       
 
         serverResult = serverEng.unwrap(cToS, serverIn);        
-        System.out.println("serverResult:\n" + serverResult + '\n');
-        System.out.println("net buffer after unwrap" + cToS);
-        System.out.println("server app buffer after unwrap" + serverIn);
+        System.out.println("serverResult, unwrap:\n" + serverResult + '\n');
 
+        cToS.compact();
+        
+        serverResult = serverEng.wrap(serverOut, sToc);        
+        System.out.println("serverResult, wrap:\n" + serverResult + '\n');
 
+        sToc.flip();
+        
+        clientResult = clientEng.unwrap(sToc, clientIn);
+        System.out.println("clientResult, unwrap:\n" + clientResult + '\n');
+
+        sToc.compact();
+
+        clientResult = clientEng.wrap(clientOut, cToS);
+        System.out.println("clientResult, wrap:\n" + clientResult + '\n');
+        
+        cToS.flip();       
+
+        serverResult = serverEng.unwrap(cToS, serverIn);        
+        System.out.println("serverResult, unwrap:\n" + serverResult + '\n');
+
+        cToS.compact();
+        
+        serverResult = serverEng.wrap(serverOut, sToc);        
+        System.out.println("serverResult, wrap:\n" + serverResult + '\n');
+
+        sToc.flip();
+        
+        clientResult = clientEng.unwrap(sToc, clientIn);
+        System.out.println("clientResult, unwrap:\n" + clientResult + '\n');
+
+        sToc.compact();
+
+        clientResult = clientEng.wrap(clientOut, cToS);
+        System.out.println("clientResult, wrap:\n" + clientResult + '\n');
+        
+        cToS.flip();       
+
+        serverResult = serverEng.unwrap(cToS, serverIn);        
+        System.out.println("serverResult, unwrap:\n" + serverResult + '\n');
+
+        cToS.compact();
+        
+        serverResult = serverEng.wrap(serverOut, sToc);        
+        System.out.println("serverResult, wrap:\n" + serverResult + '\n');
+
+        sToc.flip();
+        
+        clientResult = clientEng.unwrap(sToc, clientIn);
+        System.out.println("clientResult, unwrap:\n" + clientResult + '\n');
+
+        sToc.compact();
+        
+
+        // System.out.println("net buffer after unwrap" + cToS);
+        // System.out.println("server app buffer after unwrap" + serverIn);
 
         /*
         clientEng.wrap(ByteBuffer.allocate(0), cToS);
