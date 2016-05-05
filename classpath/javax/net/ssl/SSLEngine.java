@@ -1,18 +1,21 @@
 package javax.net.ssl;
 
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLEngineResult.Status;
 import java.nio.ByteBuffer;
 
 public class SSLEngine {
     private static native void startClientHandShake(long sslep);
     private static native void startServerHandShake(long sslep);
-    private native int wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
-    private native int unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int[] wrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
+    private native int[] unwrapData(long sslep, byte[] srcbuf, byte[] dstbuf);
 
     private final long sslePtr;
+    private volatile long ssleResPtr;
     private volatile boolean clientMode = false;
     private volatile boolean handShakeStarted = false;
     private volatile HandshakeStatus hsState = HandshakeStatus.NOT_HANDSHAKING;
+    //private boolean noEncryptMode = false;
     
     protected SSLEngine(long sslePtr) {
         this.sslePtr = sslePtr;
@@ -43,19 +46,67 @@ public class SSLEngine {
         return hsState;
     }   
     
-    public void wrap(ByteBuffer src, ByteBuffer dst) {
+    public SSLEngineResult wrap(ByteBuffer src, ByteBuffer dst) {
+        // Check that destination is large enough
+        if(dst.remaining() < 16384) {
+            return new SSLEngineResult(Status.BUFFER_UNDERFLOW, this.getHandshakeStatus(), 0, 0);
+        }
+
+        // else if  "outbound done"
+        //      return CLOSED, getHsStatus, 0, 0
+        
+        else if(this.getHandshakeStatus() == HandshakeStatus.NEED_UNWRAP) {
+            return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
+        }
+        
+        // Convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
-        src.get(srcArr);
-        int bytesEncrypted = wrapData(sslePtr, srcArr, dstArr);    
-        dst.put(dstArr);
+        src.slice().get(srcArr);
+        // How much as been put into the data array, how much has been consumed?
+        // consumed from source, put into destination.
+
+        // Send to native code
+        int[] native_result = wrapData(sslePtr, srcArr, dstArr);        
+        
+        // Place wrapped data into destination buffer        
+        dst.put(dstArr, 0, native_result[3]); // needs a size (up to 128, for example)
+        src.position(src.position() + native_result[2]);
+
+
+        // Contruct and return SSLEngineResult based on results of wrapData
+        SSLEngineResult result = new SSLEngineResult(native_result);
+        hsState = result.getHandshakeStatus();
+        return result;
+       
     }
 
-    public void unwrap(ByteBuffer src, ByteBuffer dst) {
+    public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer dst) {
+        // if "inbound done"
+        //      return CLOSED, getHsStatus, 0, 0
+
+        if(this.getHandshakeStatus() == HandshakeStatus.NEED_WRAP) {
+            return new SSLEngineResult(Status.OK, this.getHandshakeStatus(), 0, 0);
+        }
+
+        // convert to usable data types
         byte[] srcArr = new byte[src.remaining()];
         byte[] dstArr = new byte[dst.remaining()];
-        src.get(srcArr);
-        int bytesDecrypted = unwrapData(sslePtr, srcArr, dstArr);
-        dst.put(dstArr);
+        
+        src.slice().get(srcArr);
+        int srcLen = srcArr.length;
+        // System.out.println("unwrap: length of srcArr = " + srcLen);
+
+        // Send to native code
+        int[] native_result = unwrapData(sslePtr, srcArr, dstArr);
+
+        // Place unwrapped data into destination buffer
+        dst.put(dstArr, 0, native_result[3]);
+        src.position(src.position() + native_result[2]);
+
+        // Construct and return SSLEngineResult based on results of unwrapData
+        SSLEngineResult result = new SSLEngineResult(native_result);
+        hsState = result.getHandshakeStatus();
+        return result;
     }
 }

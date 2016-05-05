@@ -13,7 +13,8 @@ public class SSLContext {
     
     private final long sslCtxPtr;
     
-    protected SSLContext(String protocol) {            
+    protected SSLContext(String protocol) {  
+        // initCTX();          
         sslCtxPtr = createCTX(protocol);
     }
     
